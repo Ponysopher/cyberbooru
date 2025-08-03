@@ -1,0 +1,40 @@
+@import "tailwindcss";
+@config "../tailwind.config.ts";
+
+@theme {
+  --color-cyber-primary: #ff00cc;
+  --color-cyber-bg: #121212;
+  --color-cyber-surface: #1e1e1e;
+  --color-cyber-secondary: #00ffe7;
+  --color-cyber-purple: #c084fc;
+}
+
+@layer utilities {
+  .neon-shadow-hover {
+    @apply hover:shadow-[0_0_15px] hover:shadow-cyber-primary;
+  }
+
+  .neon-underline {
+    @apply relative;
+  }
+}
+
+.neon-underline::after {
+  content: "";
+  position: absolute;
+  bottom: 4px; /* adjust based on padding */
+  left: 10;
+  height: 2px;
+  width: 0;
+  bottom: -2;
+  background-color: var(--color-cyber-primary);
+  box-shadow: 0 0 8px var(--color-cyber-primary);
+  transition: width 300ms ease-in-out;
+}
+
+.neon-underline:focus-within::after {
+  width: calc(100% - 18px);
+  bottom: 0;
+  left: 10;
+  height: 2px;
+}

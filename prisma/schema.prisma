@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Image {
+  id              Int       @id @default(autoincrement())
+  fullPath        String    @unique
+  thumbnailPath   String    @unique
+  largePath       String?   @unique
+  width           Int?
+  height          Int?
+  fileSizeKB      Int?
+  sha256Hash      String?   @unique
+  perceptualHash  String?
+  source          String?
+  nsfw            Boolean   @default(false)
+  groupId         Int?
+  group           ImageGroup? @relation(fields: [groupId], references: [id])
+  createdAt       DateTime  @default(now())
+  ImageTags       ImageTags[] @relation(name: "imgRef")
+}
+// change nsfw default to true
+
+model ImageGroup {
+  id          Int      @id @default(autoincrement())
+  title       String?
+  description String?
+  createdAt   DateTime @default(now())
+  images      Image[]
+}
+// Add tag category/category table
+
+model ImageTags {
+  imageId    Int
+  image      Image      @relation(name: "imgRef", fields: [imageId], references: [id], onDelete: Cascade)
+  tagId      Int
+  tag        Tag        @relation(name: "tagRef", fields: [tagId], references: [id], onDelete: Cascade)
+  @@id([imageId, tagId])
+}
+
+model Tag {
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
+  aliases      TagAlias[]
+  relatedTags  RelatedTags[] @relation(name: "fromTag")
+  reverseRelatedTags RelatedTags[] @relation(name: "toTag")
+  ImageTags    ImageTags[]   @relation(name: "tagRef")
+}
+
+model TagAlias {
+  id      Int    @id @default(autoincrement())
+  alias   String @unique
+  tagId   Int
+  tag     Tag    @relation(fields: [tagId], references: [id])
+}
+
+model RelatedTags {
+  fromTagId Int
+  fromTag   Tag @relation(name: "fromTag", fields: [fromTagId], references: [id])
+
+  toTagId   Int
+  toTag     Tag @relation(name: "toTag", fields: [toTagId], references: [id])
+  @@id([fromTagId, toTagId])
+}

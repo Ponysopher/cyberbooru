@@ -45,3 +45,5 @@ next-env.d.ts
 
 # ignore public for now
 /public/*
+/generated/prisma
+*/archive

@@ -1,37 +1,45 @@
 // app/api/images/[...slug]/route.ts
 import { NextResponse } from 'next/server';
-import fs from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
 import { getContentType } from '@/app/util/image-exts';
 
 export async function GET(
-  request: Request,
-  { params }: { params: { slug: string[] } }
+  _request: Request,
+  { params }: { params: Promise<{ slug: string[] }> },
 ) {
   try {
-    // Join the path segments from the slug to form the image path
-    const imagePath = (await params).slug.join('/');
-    // absolute path to the image directory
+    const { slug } = await params;
+    const imagePath = slug.join('/');
+
+    // Security: Prevent directory traversal (e.g., ../../etc/passwd)
+    if (imagePath.includes('..') || imagePath.includes('/')) {
+      return new NextResponse('Forbidden', { status: 403 });
+    }
+
     const absoluteImagePath = path.join(
       process.env.BASE_IMAGES_PATH || '',
-      imagePath
+      imagePath,
     );
 
-    // Check if the file exists
-    if (!fs.existsSync(absoluteImagePath)) {
+    // Check existence and get stats
+    const stats = await fs.stat(absoluteImagePath).catch(() => null);
+    if (!stats || !stats.isFile()) {
       return new NextResponse('Image not found', { status: 404 });
     }
 
-    // Read the file stream
-    const fileStream = fs.createReadStream(absoluteImagePath);
+    // Open file and get Web ReadableStream
+    const fileHandle = await fs.open(absoluteImagePath);
+    const stream = fileHandle.readableWebStream();
 
-    // Determine the content type based on the file extension
     const contentType = getContentType(absoluteImagePath);
 
-    // Return the stream with the correct headers
-    return new NextResponse(fileStream as any, {
+    return new NextResponse(stream as unknown as BodyInit, {
       headers: {
         'Content-Type': contentType,
+        'Content-Length': stats.size.toString(),
+        // Optional: cache control for images
+        'Cache-Control': 'public, max-age=31536000, immutable',
       },
     });
   } catch (error) {
@@ -39,4 +47,3 @@ export async function GET(
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
-

@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 import { get_image_paths } from '@/app/data/images';
 
-const HARD_LIMIT = 10
+const HARD_LIMIT = 10;
 
 export async function GET(request: Request) {
+  console.log(`API: ${request.method} ${request.url}`);
   const limit = Math.min(
-    parseInt((new URL(request.url)).searchParams.get("limit") || HARD_LIMIT.toString(), 10), 
-    HARD_LIMIT)
+    parseInt(
+      new URL(request.url).searchParams.get('limit') || HARD_LIMIT.toString(),
+      10,
+    ),
+    HARD_LIMIT,
+  );
   try {
     const images = await get_image_paths(limit);
     return NextResponse.json(images);
@@ -17,7 +22,7 @@ export async function GET(request: Request) {
       {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
-      }
+      },
     );
   }
 }

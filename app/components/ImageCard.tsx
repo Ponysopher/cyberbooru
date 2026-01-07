@@ -11,11 +11,6 @@ interface ImageCardProps {
   // onClick?: () => void;       // optional click (e.g. open modal)
 }
 
-const siteURL =
-  process.env.NODE_ENV === 'production'
-    ? process.env.NEXT_PUBLIC_BASE_SITE_URL
-    : 'http://localhost:3000';
-
 export default function ImageCard({
   imgPath,
   selected = false,

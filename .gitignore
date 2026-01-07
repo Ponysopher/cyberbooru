@@ -48,3 +48,4 @@ next-env.d.ts
 /generated/prisma
 */archive
 prisma/dev.db
+sample_images/

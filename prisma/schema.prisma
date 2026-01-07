@@ -1,11 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
-}
-
 datasource db {
   provider = "sqlite"
 }
@@ -21,7 +16,7 @@ model Image {
   sha256Hash      String?   @unique
   perceptualHash  String?
   source          String?
-  nsfw            Boolean   @default(false)
+  nsfw            Boolean   @default(true)
   groupId         Int?
   group           ImageGroup? @relation(fields: [groupId], references: [id])
   createdAt       DateTime  @default(now())

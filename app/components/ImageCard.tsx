@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { CheckSquare, Square, Tag } from 'lucide-react';
 import { getContentType } from '@/app/util/image-exts';
 import { useEffect, useState } from 'react';
+import clsx from 'clsx';
 
 interface ImageCardProps {
   imgPath: string;
@@ -14,7 +15,7 @@ interface ImageCardProps {
 
 const siteURL =
   process.env.NODE_ENV === 'production'
-    ? process.env.BASE_SITE_URL
+    ? process.env.NEXT_PUBLIC_BASE_SITE_URL
     : 'http://localhost:3000';
 
 export default function ImageCard({
@@ -26,6 +27,9 @@ export default function ImageCard({
 }: ImageCardProps) {
   const [imgSrc, setImgSrc] = useState<string>('');
 
+  if (!siteURL) {
+    console.error('BASE_SITE_URL is not defined');
+  }
   console.debug('Component: Geting image at', imgPath);
 
   useEffect(() => {
@@ -48,10 +52,12 @@ export default function ImageCard({
 
   return (
     <article
-      className="group relative aspect-square rounded-md
-        overflow-hidden border neon-shadow-hover 
-        transition-shadow duration-200 ease-in-out
-        hover:border-2 hover:scale-105 transform scale"
+      className={clsx(
+        'group relative aspect-square rounded-md',
+        'overflow-hidden border neon-shadow-hover',
+        'transition-shadow duration-200 ease-in-out',
+        'hover:border-2 hover:scale-105 transform scale',
+      )}
     >
       {/* The image */}
       {imgSrc ? (
@@ -68,16 +74,13 @@ export default function ImageCard({
 
       {/* Hover overlay (hidden by default) */}
       <div
-        className={`
-          absolute inset-0 p-2 flex flex-col justify-between
-          transition-all duration-300 ease-in-out transform
-          ${
-            selected
-              ? 'opacity-100 translate-y-0'
-              : `opacity-0 translate-y-2 group-hover:opacity-100 
-              group-hover:translate-y-0`
-          }
-        `}
+        className={clsx(
+          'absolute inset-0 p-2 flex flex-col justify-between',
+          'transition-all duration-300 ease-in-out transform',
+          selected
+            ? 'opacity-100 translate-y-0'
+            : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0',
+        )}
       >
         {/* top-left: checkbox */}
         <button

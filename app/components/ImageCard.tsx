@@ -1,8 +1,6 @@
 'use client';
 import Image from 'next/image';
 import { CheckSquare, Square, Tag } from 'lucide-react';
-import { getContentType } from '@/app/util/image-exts';
-import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 
 interface ImageCardProps {
@@ -25,30 +23,7 @@ export default function ImageCard({
   tagCount = 0,
   // onClick, // Let's style the modal at a later step
 }: ImageCardProps) {
-  const [imgSrc, setImgSrc] = useState<string>('');
-
-  if (!siteURL) {
-    console.error('BASE_SITE_URL is not defined');
-  }
-  console.debug('Component: Geting image at', imgPath);
-
-  useEffect(() => {
-    const get_image_src = async (imagePath: string) => {
-      // URL-encode path
-      console.debug(`useEffect: Geting image at ${imgPath}`);
-      const localPath = encodeURIComponent(imagePath);
-      // Get the image binary data
-      const imageResponse = await fetch(`${siteURL}/api/image/${localPath}`);
-      const imgDataBuffer: ArrayBuffer = await imageResponse.arrayBuffer();
-      // Encode the binary data as a base64 string
-      const imgDataString = Buffer.from(new Uint8Array(imgDataBuffer)).toString(
-        'base64',
-      );
-      return `data:${getContentType(imagePath)};base64,${imgDataString}`;
-    };
-
-    get_image_src(imgPath).then((data) => setImgSrc(data));
-  }, [imgPath]);
+  const imgSrc = `/api/image/${encodeURIComponent(imgPath)}`;
 
   return (
     <article

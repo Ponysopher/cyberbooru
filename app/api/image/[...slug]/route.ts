@@ -33,6 +33,7 @@ export async function GET(
       headers: {
         'Content-Type': getContentType(absoluteImagePath),
         'Content-Length': stats.size.toString(),
+        'Cache-Control': 'public, max-age=31536000, immutable',
       },
     });
   } catch (error) {

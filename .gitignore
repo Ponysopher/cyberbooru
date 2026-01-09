@@ -45,7 +45,7 @@ next-env.d.ts
 
 # ignore public for now
 /public/*
-/generated/prisma
+/prisma/generated/
 */archive
 prisma/dev.db
 sample_images/

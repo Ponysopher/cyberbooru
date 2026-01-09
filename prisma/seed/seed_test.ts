@@ -1,8 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import sharp from 'sharp'; // Optional: remove if not installing
+import sharp from 'sharp';
 import cypto from 'crypto';
-import 'dotenv/config';
 import { getPrismaClient } from '../client-handle';
 
 const prisma = getPrismaClient();

@@ -3,6 +3,7 @@ import path from 'path';
 import sharp from 'sharp';
 import cypto from 'crypto';
 import { getPrismaClient } from '../client-handle';
+import { scanLocalImages } from './scanLocalImages';
 
 const prisma = getPrismaClient();
 
@@ -13,16 +14,7 @@ async function main() {
     throw new Error('BASE_IMAGES_PATH environment variable is not set.');
   const thumbDir = path.join(fullDir, 'thumb');
 
-  // Ensure directories exist
-  if (!fs.existsSync(fullDir)) {
-    fs.mkdirSync(fullDir, { recursive: true });
-    console.log(`Created ${fullDir} - add images here!`);
-    return;
-  }
-
-  const files = fs
-    .readdirSync(fullDir)
-    .filter((file) => /\.(jpg|jpeg|png|gif|webp)$/i.test(file));
+  const files = scanLocalImages(fullDir);
 
   if (files.length === 0) {
     console.log(`No images found in ${fullDir} - add some samples!`);

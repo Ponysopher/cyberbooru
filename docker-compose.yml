@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:latest # Or a specific version like postgres:16
+    image: postgres:16
     restart: unless-stopped
     env_file:
       - .env # Loads variables from your existing .env file
@@ -9,9 +9,8 @@ services:
     volumes:
       # Bind mount: host ./database → container /var/lib/postgresql
       - /home/ponysopher/dev/booru-db-data:/var/lib/postgresql
-    # Optional: healthcheck for better reliability
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER:-postgres}']
       interval: 10s
       timeout: 5s
-      retries: 0
+      retries: 10

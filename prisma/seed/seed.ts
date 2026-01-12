@@ -82,6 +82,7 @@ export async function getSeedImageData(
     });
   }
 
+  console.log(`Prepared ${images.length} images from ${fullDir} for seeding.`);
   return images;
 }
 

@@ -50,3 +50,4 @@ next-env.d.ts
 */archive
 prisma/dev.db
 sample_images/
+thumbnails/

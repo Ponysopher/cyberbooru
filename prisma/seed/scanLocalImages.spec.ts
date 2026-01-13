@@ -2,11 +2,22 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { scanLocalImages } from './scanLocalImages';
 import { vol } from 'memfs';
 
+// Mock the Node 'fs' module using memfs for in-memory file system testing.
+// This allows us to run scanLocalImages without touching the real filesystem.
 vi.mock('fs', async () => {
+  // Dynamic import inside the factory is required because vi.mock() is hoisted.
+  // Top-level variables cannot be referenced here, or Vitest will throw a ReferenceError.
   const { fs: memfs } = await import('memfs');
+
   return {
+    // Provide a default export so 'import fs from "fs"' works in scanLocalImages.
     default: memfs,
+
+    // Spread all named exports from memfs to preserve sync functions like existsSync, readFileSync, etc.
     ...memfs,
+
+    // Explicitly provide promises property to mimic Node fs.promises API
+    // This allows 'import { promises as fsp } from "fs"' to work as expected.
     promises: memfs.promises,
   };
 });

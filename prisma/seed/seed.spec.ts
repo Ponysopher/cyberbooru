@@ -1,18 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import { getSeedImageData } from './seed';
-import mockFs, { mockEmptyDir } from './fs/mockfiles';
-
-const imageFileNames = [
-  '133196374_p0.png',
-  'GxC1rOAX0AAunLs.jpeg',
-  '129193482_p0_master1200.jpg',
-  '133341258_p0.png',
-  '133154851_p0.jpg',
-  'Rubjoy_Polyphallography.png',
-].map((fileName) => `sample_images/${fileName}`);
+import path from 'path';
 
 describe('getSeedImageData', () => {
   it('produces a structured list of images', async () => {
+    const imageFileNames = [
+      '133196374_p0.png',
+      'GxC1rOAX0AAunLs.jpeg',
+      '129193482_p0_master1200.jpg',
+      '133341258_p0.png',
+      '133154851_p0.jpg',
+      'Rubjoy_Polyphallography.png',
+    ].map((fileName) => `sample_images/${fileName}`);
+
     const imageData = await getSeedImageData(
       process.env.BASE_IMAGES_PATH!,
       false,
@@ -35,19 +35,22 @@ describe('getSeedImageData', () => {
   });
 
   it('handles empty directories gracefully', async () => {
-    const imageData = await getSeedImageData(mockEmptyDir, false, mockFs);
+    const imageData = await getSeedImageData(
+      path.join(process.env.BASE_IMAGES_PATH!, 'empty'),
+      false,
+    );
     expect(imageData.length).toBe(0);
   });
 
   it('handles non-existant directories gracefully', async () => {
     await expect(
-      getSeedImageData('/path/to/no/directory', false, mockFs),
+      getSeedImageData('/path/to/no/directory', false),
     ).rejects.toThrowError(/.*does not exist/i);
   });
 
   it('handles no provided directory gracefully', async () => {
-    await expect(
-      getSeedImageData(undefined!, false, mockFs),
-    ).rejects.toThrowError(/no.*provided/i);
+    await expect(getSeedImageData(undefined!, false)).rejects.toThrowError(
+      /no.*provided/i,
+    );
   });
 });

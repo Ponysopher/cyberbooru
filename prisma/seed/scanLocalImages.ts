@@ -1,5 +1,5 @@
-import type FileSystem from './fs/FileSystem';
-import realFs from './fs/NodeFileSystem';
+import fs from 'fs';
+import { promises as fsp } from 'fs';
 
 interface ScanOptions {
   recurse?: boolean;
@@ -7,27 +7,26 @@ interface ScanOptions {
 }
 
 export async function scanLocalImages(
-  path: string,
+  dirPath: string,
   opts: ScanOptions = { recurse: false, ignoreHidden: true },
-  fsImpl: FileSystem = realFs,
 ): Promise<string[]> {
-  if (!fsImpl.existsSync(path)) {
-    throw new Error(`Directory ${path} does not exist.`);
+  if (!fs.existsSync(dirPath)) {
+    throw new Error(`Directory ${dirPath} does not exist.`);
   }
 
-  const entries = await fsImpl.readdir(path);
+  const entries = await fsp.readdir(dirPath);
   const results: string[] = [];
 
   for (const entry of entries) {
     if (opts.ignoreHidden && entry.startsWith('.')) continue;
 
-    const fullPath = `${path.replace(/\/+$/, '')}/${entry}`;
-    const stats = await fsImpl.stat(fullPath);
+    const fullPath = `${dirPath.replace(/\/+$/, '')}/${entry}`;
+    const stats = await fsp.stat(fullPath);
 
     if (stats.isFile() && /\.(jpe?g|png|webp)$/i.test(entry)) {
       results.push(fullPath);
     } else if (stats.isDirectory() && opts.recurse) {
-      const nested = await scanLocalImages(fullPath, opts, fsImpl);
+      const nested = await scanLocalImages(fullPath, opts);
       results.push(...nested);
     }
   }

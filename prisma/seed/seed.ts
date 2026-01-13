@@ -4,8 +4,7 @@ import cypto from 'crypto';
 import { getPrismaClient } from '../client-handle';
 import type { Image } from '../generated/prisma/client';
 import { scanLocalImages } from './scanLocalImages';
-import FileSystem from './fs/FileSystem';
-import realFs from './fs/NodeFileSystem';
+import fs from 'fs';
 
 export type ImageModel = Omit<
   Image,
@@ -15,22 +14,17 @@ export type ImageModel = Omit<
 export async function getSeedImageData(
   fullDir: string,
   generateThumbnails: boolean = true,
-  fsImpl: FileSystem = realFs,
 ): Promise<ImageModel[]> {
   if (!fullDir) {
     throw new Error('No images directory provided.');
   }
-  if (!fsImpl.existsSync(fullDir)) {
+  if (!fs.existsSync(fullDir)) {
     throw new Error(`Images directory does not exist: ${fullDir}`);
   }
 
   const thumbDir = path.join(path.dirname(path.resolve(fullDir)), 'thumbnails');
 
-  const files = await scanLocalImages(
-    fullDir,
-    { recurse: false, ignoreHidden: true },
-    fsImpl,
-  );
+  const files = await scanLocalImages(fullDir);
 
   if (files.length === 0) return [];
 
@@ -40,7 +34,7 @@ export async function getSeedImageData(
     let thumbnailPath: string | null = null;
 
     // Basic metadata
-    const stats = await fsImpl.stat(fullPath);
+    const stats = fs.statSync(fullPath);
     if (!stats.size) {
     }
     const fileSizeKB = Math.round((stats.size || 0) / 1024);
@@ -64,8 +58,8 @@ export async function getSeedImageData(
 
     // Simple thumbnail generation
     const thumbFilePath = path.join(thumbDir, file);
-    if (!fsImpl.existsSync(thumbFilePath) && generateThumbnails) {
-      fsImpl.mkdirSync(thumbDir, { recursive: true });
+    if (!fs.existsSync(thumbFilePath) && generateThumbnails) {
+      fs.mkdirSync(thumbDir, { recursive: true });
       await sharp(fullPath).resize(300).toFile(thumbFilePath);
       thumbnailPath = path.join(thumbDir, file);
     }

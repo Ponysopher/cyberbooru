@@ -4,6 +4,7 @@ import cypto from 'crypto';
 import { getPrismaClient } from '../client-handle';
 import type { Image } from '../generated/prisma/client';
 import { scanLocalImages } from './scanLocalImages';
+import generateThumbnail from './generateThumbnail';
 import fs from 'fs';
 
 export type ImageModel = Omit<
@@ -13,7 +14,7 @@ export type ImageModel = Omit<
 
 export async function getSeedImageData(
   fullDir: string,
-  generateThumbnails: boolean = true,
+  thumbnailDir?: string,
 ): Promise<ImageModel[]> {
   if (!fullDir) {
     throw new Error('No images directory provided.');
@@ -27,6 +28,8 @@ export async function getSeedImageData(
   const files = await scanLocalImages(fullDir);
 
   if (files.length === 0) return [];
+
+  const generateThumbnails = thumbnailDir && fs.existsSync(thumbnailDir);
 
   const images: ImageModel[] = [];
   for (const file of files) {
@@ -44,6 +47,7 @@ export async function getSeedImageData(
     let height: number | null = null;
     let sha256Hash: string | null = null;
 
+    // Use sharp to get image metadata and hash
     try {
       const image = sharp(fullPath);
       const metadata = await image.metadata();
@@ -57,16 +61,20 @@ export async function getSeedImageData(
     }
 
     // Simple thumbnail generation
-    const thumbFilePath = path.join(thumbDir, file);
-    if (!fs.existsSync(thumbFilePath) && generateThumbnails) {
-      fs.mkdirSync(thumbDir, { recursive: true });
-      await sharp(fullPath).resize(300).toFile(thumbFilePath);
-      thumbnailPath = path.join(thumbDir, file);
+    let generatedThumbnailPath: string | undefined;
+    generatedThumbnailPath = (
+      await generateThumbnail(
+        fullPath,
+        path.join(thumbDir, path.basename(fullPath)),
+      )
+    ).thumbnailPath;
+    if (!generatedThumbnailPath) {
+      console.error(`Could not generate thumbnail for ${file}`);
     }
 
     images.push({
       fullPath,
-      thumbnailPath: thumbnailPath || fullPath,
+      thumbnailPath: generatedThumbnailPath || fullPath,
       width,
       height,
       fileSizeKB,
@@ -86,8 +94,14 @@ export default async function seed(): Promise<void> {
     console.error('BASE_IMAGES_PATH environment variable is not set.');
     return;
   }
+  const thumbnailDir = process.env.BASE_IMAGES_PATH;
+  if (!fullDir) {
+    console.warn(
+      'BASE_IMAGES_PATH environment variable is not set. Thumbnails will not be generated.',
+    );
+  }
 
-  const images = await getSeedImageData(fullDir, true);
+  const images = await getSeedImageData(fullDir, thumbnailDir);
   console.log(`Prepared ${images.length} images for seeding.`);
   if (images.length === 0) {
     console.warn(`No images found in ${fullDir} - add some samples!`);

@@ -1,6 +1,8 @@
 import fs from 'fs';
 import { promises as fsp } from 'fs';
 
+export const SUPPORTED_IMAGE_FORMATS_REGEX = /\.(jpe?g|png|webp)$/i;
+
 interface ScanOptions {
   recurse?: boolean;
   ignoreHidden?: boolean;
@@ -23,7 +25,7 @@ export async function scanLocalImages(
     const fullPath = `${dirPath.replace(/\/+$/, '')}/${entry}`;
     const stats = await fsp.stat(fullPath);
 
-    if (stats.isFile() && /\.(jpe?g|png|webp)$/i.test(entry)) {
+    if (stats.isFile() && SUPPORTED_IMAGE_FORMATS_REGEX.test(entry)) {
       results.push(fullPath);
     } else if (stats.isDirectory() && opts.recurse) {
       const nested = await scanLocalImages(fullPath, opts);

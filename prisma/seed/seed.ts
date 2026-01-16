@@ -23,8 +23,6 @@ export async function getSeedImageData(
     throw new Error(`Images directory does not exist: ${fullDir}`);
   }
 
-  const thumbDir = path.join(path.dirname(path.resolve(fullDir)), 'thumbnails');
-
   const files = await scanLocalImages(fullDir);
 
   if (files.length === 0) return [];
@@ -34,7 +32,6 @@ export async function getSeedImageData(
   const images: ImageModel[] = [];
   for (const file of files) {
     const fullPath = file;
-    let thumbnailPath: string | null = null;
 
     // Basic metadata
     const stats = fs.statSync(fullPath);
@@ -62,14 +59,16 @@ export async function getSeedImageData(
 
     // Simple thumbnail generation
     let generatedThumbnailPath: string | undefined;
-    generatedThumbnailPath = (
-      await generateThumbnail(
-        fullPath,
-        path.join(thumbDir, path.basename(fullPath)),
-      )
-    ).thumbnailPath;
-    if (!generatedThumbnailPath) {
-      console.error(`Could not generate thumbnail for ${file}`);
+    if (generateThumbnails) {
+      generatedThumbnailPath = (
+        await generateThumbnail(
+          fullPath,
+          path.join(thumbnailDir, path.basename(fullPath)),
+        )
+      ).thumbnailPath;
+      if (!generatedThumbnailPath) {
+        console.error(`Could not generate thumbnail for ${file}`);
+      }
     }
 
     images.push({
@@ -109,7 +108,8 @@ export default async function seed(): Promise<void> {
   }
 
   const prisma = getPrismaClient();
-  let successCount = 0;
+  let insertCount = 0;
+  let duplicateCount = 0;
   let failureCount = 0;
 
   for (const img of images) {
@@ -125,10 +125,9 @@ export default async function seed(): Promise<void> {
     } = img;
 
     try {
-      await prisma.image.upsert({
-        where: { fullPath },
-        update: {},
-        create: {
+      // Try to create first (fast path when record doesn't exist)
+      await prisma.image.create({
+        data: {
           fullPath,
           thumbnailPath: thumbnailPath || fullPath,
           width,
@@ -139,15 +138,33 @@ export default async function seed(): Promise<void> {
           source,
         },
       });
-      successCount++;
-    } catch (err) {
-      failureCount++;
-      console.error(`Failed to upsert ${fullPath}:`, err);
+      insertCount++;
+    } catch (err: any) {
+      // Unique constraint violation → record already exists
+      if (err.code === 'P2002') {
+        // Overwrite
+        await prisma.image.update({
+          where: { fullPath },
+          data: {
+            thumbnailPath: thumbnailPath || fullPath,
+            width,
+            height,
+            fileSizeKB,
+            sha256Hash,
+            nsfw,
+            source,
+          },
+        });
+        duplicateCount++;
+      } else {
+        failureCount++;
+        console.error(`Failed ${fullPath}:`, err);
+      }
     }
   }
 
   console.log(
-    `Upsert complete: ${successCount} successes, ${failureCount} failures.`,
+    `Upsert complete: ${insertCount} images inserted, ${duplicateCount} duplicates, ${failureCount} failures.`,
   );
   await prisma.$disconnect();
 }

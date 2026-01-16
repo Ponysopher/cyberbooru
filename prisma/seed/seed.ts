@@ -102,15 +102,18 @@ export default async function seed(): Promise<void> {
   }
 
   const images = await getSeedImageData(fullDir, thumbnailDir);
-  console.log(`Prepared ${images.length} images for seeding.`);
+
   if (images.length === 0) {
     console.warn(`No images found in ${fullDir} - add some samples!`);
     return;
   }
 
   const prisma = getPrismaClient();
-  images.forEach(
-    async ({
+  let successCount = 0;
+  let failureCount = 0;
+
+  for (const img of images) {
+    const {
       fullPath,
       thumbnailPath,
       width,
@@ -119,7 +122,9 @@ export default async function seed(): Promise<void> {
       sha256Hash,
       nsfw,
       source,
-    }) => {
+    } = img;
+
+    try {
       await prisma.image.upsert({
         where: { fullPath },
         update: {},
@@ -134,8 +139,15 @@ export default async function seed(): Promise<void> {
           source,
         },
       });
-      console.log(`Seeded: ${fullPath}`);
-    },
+      successCount++;
+    } catch (err) {
+      failureCount++;
+      console.error(`Failed to upsert ${fullPath}:`, err);
+    }
+  }
+
+  console.log(
+    `Upsert complete: ${successCount} successes, ${failureCount} failures.`,
   );
   await prisma.$disconnect();
 }

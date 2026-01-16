@@ -13,10 +13,7 @@ describe('getSeedImageData', () => {
       'Rubjoy_Polyphallography.png',
     ].map((fileName) => `sample_images/${fileName}`);
 
-    const imageData = await getSeedImageData(
-      process.env.BASE_IMAGES_PATH!,
-      false,
-    );
+    const imageData = await getSeedImageData(process.env.BASE_IMAGES_PATH!);
     const returnedFileNames = imageData
       .map(({ fullPath }) => fullPath)
       .sort((a, b) => a.localeCompare(b));
@@ -37,19 +34,18 @@ describe('getSeedImageData', () => {
   it('handles empty directories gracefully', async () => {
     const imageData = await getSeedImageData(
       path.join(process.env.BASE_IMAGES_PATH!, 'empty'),
-      false,
     );
     expect(imageData.length).toBe(0);
   });
 
   it('handles non-existant directories gracefully', async () => {
     await expect(
-      getSeedImageData('/path/to/no/directory', false),
+      getSeedImageData('/path/to/no/directory'),
     ).rejects.toThrowError(/.*does not exist/i);
   });
 
   it('handles no provided directory gracefully', async () => {
-    await expect(getSeedImageData(undefined!, false)).rejects.toThrowError(
+    await expect(getSeedImageData(undefined!)).rejects.toThrowError(
       /no.*provided/i,
     );
   });

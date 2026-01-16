@@ -42,9 +42,7 @@ describe('Prisma Database Connectivity', () => {
 
   afterAll(async () => {
     await prisma.image.deleteMany({
-      where: {
-        fullPath: TEST_IMAGE_FULL_PATH,
-      },
+      where: { fullPath: TEST_IMAGE_FULL_PATH },
     });
     await prisma.$disconnect();
   });

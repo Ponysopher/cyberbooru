@@ -22,11 +22,10 @@ describe('getSeedImageData', () => {
     );
 
     imageData.forEach(({ width, height, fileSizeKB, sha256Hash, mimeType }) => {
-      console.log(mimeType);
       expect(width).toBeGreaterThan(0);
       expect(height).toBeGreaterThan(0);
       expect(fileSizeKB).toBeGreaterThan(0);
-      expect(mimeType).toMatch(/^(png|jpeg|jpg|jfif|webp)$/);
+      expect(mimeType).toMatch(/^image\/(png|jpeg|jpg)$/);
       expect(sha256Hash).toMatch(/^[a-f0-9]{64}$/);
     });
 

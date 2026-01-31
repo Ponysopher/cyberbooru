@@ -51,7 +51,7 @@ export async function getSeedImageData(
       const metadata = await image.metadata();
       width = metadata.width || null;
       height = metadata.height || null;
-      mimeType = metadata.format;
+      mimeType = `image/${metadata.format}`;
 
       const buffer = await image.toBuffer();
       sha256Hash = cypto.createHash('sha256').update(buffer).digest('hex');

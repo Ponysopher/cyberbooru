@@ -21,10 +21,12 @@ describe('getSeedImageData', () => {
       imageFileNames.sort((a, b) => a.localeCompare(b)),
     );
 
-    imageData.forEach(({ width, height, fileSizeKB, sha256Hash }) => {
+    imageData.forEach(({ width, height, fileSizeKB, sha256Hash, mimeType }) => {
+      console.log(mimeType);
       expect(width).toBeGreaterThan(0);
       expect(height).toBeGreaterThan(0);
       expect(fileSizeKB).toBeGreaterThan(0);
+      expect(mimeType).toMatch(/^(png|jpeg|jpg|jfif|webp)$/);
       expect(sha256Hash).toMatch(/^[a-f0-9]{64}$/);
     });
 

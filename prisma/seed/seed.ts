@@ -43,6 +43,7 @@ export async function getSeedImageData(
     let width: number | null = null;
     let height: number | null = null;
     let sha256Hash: string | null = null;
+    let mimeType: string | null = null;
 
     // Use sharp to get image metadata and hash
     try {
@@ -50,6 +51,7 @@ export async function getSeedImageData(
       const metadata = await image.metadata();
       width = metadata.width || null;
       height = metadata.height || null;
+      mimeType = metadata.format;
 
       const buffer = await image.toBuffer();
       sha256Hash = cypto.createHash('sha256').update(buffer).digest('hex');
@@ -74,6 +76,7 @@ export async function getSeedImageData(
     images.push({
       fullPath,
       thumbnailPath: generatedThumbnailPath || fullPath,
+      mimeType,
       width,
       height,
       fileSizeKB,

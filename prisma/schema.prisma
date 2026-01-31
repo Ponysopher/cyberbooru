@@ -14,6 +14,7 @@ model Image {
   fullPath        String    @unique
   thumbnailPath   String    @unique
   largePath       String?   @unique
+  mimeType        String?
   width           Int?
   height          Int?
   fileSizeKB      Int?
@@ -26,7 +27,6 @@ model Image {
   createdAt       DateTime  @default(now())
   ImageTags       ImageTags[] @relation(name: "imgRef")
 }
-// change nsfw default to true
 
 model ImageGroup {
   id          Int      @id @default(autoincrement())
@@ -35,7 +35,7 @@ model ImageGroup {
   createdAt   DateTime @default(now())
   images      Image[]
 }
-// Add tag category/category table
+// TODO: Add tag category/category table
 
 model ImageTags {
   imageId    Int

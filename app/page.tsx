@@ -10,7 +10,7 @@ export default function Page() {
         <div className="width-full flex justify-between items-center">
           <h1 className="text-4xl">CYBERPUNK GRID TEST</h1>
           <ModeToggle />
-          <FileUploader></FileUploader>
+          <FileUploader />
         </div>
 
         <section className="relative">

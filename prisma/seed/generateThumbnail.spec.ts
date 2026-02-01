@@ -3,17 +3,11 @@ import generateThumbnail from './generateThumbnail';
 import { rmSync } from 'fs';
 import { readdir } from 'fs/promises';
 import path from 'path';
+import TEST_IMAGE_FILENAMES from '@/vitest-configs/test-image-filenames';
 
 const THUMBNAILS_DIR = process.env.BASE_THUMBNAILS_PATH;
 const IMAGES_DIR = process.env.BASE_IMAGES_PATH;
-const imageFileNames = [
-  '133196374_p0.png',
-  'GxC1rOAX0AAunLs.jpeg',
-  '129193482_p0_master1200.jpg',
-  '133341258_p0.png',
-  '133154851_p0.jpg',
-  'Rubjoy_Polyphallography.png',
-];
+const imageFileNames = TEST_IMAGE_FILENAMES;
 const fullImageFilePaths = imageFileNames.map((fileName) =>
   path.join(IMAGES_DIR || 'null', fileName),
 );

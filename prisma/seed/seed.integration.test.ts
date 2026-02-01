@@ -1,19 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getPrismaClient } from '../client-handle';
 import seed from './seed';
+import TEST_IMAGE_FILENAMES from '@/vitest-configs/test-image-filenames';
 
-const EXPECTED_IMAGE_FILE_NAMES = [
-  '133196374_p0.png',
-  'GxC1rOAX0AAunLs.jpeg',
-  '129193482_p0_master1200.jpg',
-  '133341258_p0.png',
-  '133154851_p0.jpg',
-  'Rubjoy_Polyphallography.png',
-];
-const EXPECTED_IMAGE_PATHS = EXPECTED_IMAGE_FILE_NAMES.map(
+const EXPECTED_IMAGE_PATHS = TEST_IMAGE_FILENAMES.map(
   (fileName) => `sample_images/${fileName}`,
 ).sort();
-const EXPECTED_IMAGE_THUMBNAIL_PATHS = EXPECTED_IMAGE_FILE_NAMES.map(
+const EXPECTED_IMAGE_THUMBNAIL_PATHS = TEST_IMAGE_FILENAMES.map(
   (fileName) => `thumbnails/${fileName}`,
 ).sort();
 

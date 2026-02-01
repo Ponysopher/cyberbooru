@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import generateThumbnail from './generateThumbnail';
 import { rmSync } from 'fs';
 import { readdir } from 'fs/promises';

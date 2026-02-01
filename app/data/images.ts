@@ -10,14 +10,9 @@ export interface ImageInfo {
 
 const BASE_IMAGES_PATH = process.env.BASE_IMAGES_PATH;
 
-function strip_base_path(fullPath: string) {
-  const baseIndex = fullPath.indexOf(`${BASE_IMAGES_PATH}/`);
-  if (baseIndex === -1) return fullPath; // base path not found
-  return fullPath.slice(baseIndex + BASE_IMAGES_PATH!.length + 1);
-}
-
 export async function get_image_paths(
   limit: number = 10,
+  offset?: number,
 ): Promise<ImageInfo[]> {
   const prisma = getPrismaClient();
   let images: ImageInfo[] = [];
@@ -26,9 +21,9 @@ export async function get_image_paths(
       throw new Error('BASE_IMAGES_PATH is not defined');
     }
 
-    // Query the first 10 images with their tags
-    const firstImages = await prisma.image.findMany({
+    const queriedImages = await prisma.image.findMany({
       take: limit,
+      skip: offset || 0,
       orderBy: { id: 'desc' }, // last inserted images (highest IDs)
       include: {
         ImageTags: {
@@ -41,7 +36,7 @@ export async function get_image_paths(
     });
 
     // Format the result for clean output
-    const formattedImages = firstImages.map((image) => ({
+    const formattedImages = queriedImages.map((image) => ({
       id: image.id,
       filePath: image.fullPath,
       thumbnailPath: image.thumbnailPath,

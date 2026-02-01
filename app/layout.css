@@ -1,18 +1,155 @@
 @import 'tailwindcss';
-@config "../tailwind.config.ts";
+
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-cyber-primary: #ff00cc;
+  --color-cyber-primary: #00ffe7;
   --color-cyber-bg: #121212;
   --color-cyber-surface: #1e1e1e;
-  --color-cyber-secondary: #00ffe7;
+  --color-cyber-secondary: #ff00cc;
   --color-cyber-purple: #c084fc;
   --color-cyber-pink: #ff0080;
 }
 
+/* Light mode: neutral / subdued (fallback) */
+:root {
+  --radius: 0.625rem;
+
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(222.2 84% 4.9%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(222.2 84% 4.9%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(222.2 84% 4.9%);
+  --primary: hsl(180 100% 50%); /* cyan #00ffe7 as primary */
+  --primary-foreground: hsl(0 0% 8%); /* dark text on bright cyan */
+  --secondary: hsl(330 100% 50%); /* magenta #ff00cc as secondary */
+  --secondary-foreground: hsl(0 0% 98%);
+  --accent: hsl(330 100% 60%); /* brighter magenta for accent */
+  --accent-foreground: hsl(0 0% 8%);
+  --ring: hsl(180 100% 50%);
+  --muted: hsl(210 40% 96.1%);
+  --muted-foreground: hsl(215.4 16.3% 46.9%);
+  --accent: hsl(270 80% 70%);
+  --accent-foreground: hsl(222.2 47.4% 11.2%);
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: hsl(210 40% 98%);
+  --border: hsl(214.3 31.8% 91.4%);
+  --input: hsl(214.3 31.8% 91.4%);
+  --ring: hsl(330 100% 50%);
+  --chart-1: hsl(180 100% 50%);
+  --chart-2: hsl(330 100% 50%);
+  --chart-3: hsl(270 80% 70%);
+  --chart-4: hsl(43 96% 56%);
+  --chart-5: hsl(280 65% 60%);
+  --sidebar: hsl(0 0% 100%);
+  --sidebar-foreground: hsl(222.2 84% 4.9%);
+  --sidebar-primary: hsl(330 100% 50%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(270 80% 70%);
+  --sidebar-accent-foreground: hsl(222.2 47.4% 11.2%);
+  --sidebar-border: hsl(214.3 31.8% 91.4%);
+  --sidebar-ring: hsl(330 100% 50%);
+}
+
+/* Dark mode: cyberpunk neon activated */
+.dark {
+  --background: hsl(
+    300 20% 6%
+  ); /* deep purple-black tint close to #121212 but with cyber vibe */
+  --foreground: hsl(
+    300 15% 92%
+  ); /* bright off-white with magenta/purple undertone for neon text glow */
+  --card: hsl(300 12% 10%); /* surface ≈ #1e1e1e with subtle purple */
+  --card-foreground: hsl(300 15% 92%);
+  --popover: hsl(300 12% 10%);
+  --popover-foreground: hsl(300 15% 92%);
+  --primary: hsl(174, 100%, 50%); /* brighter cyan #00ffe7 glow as primary */
+  --primary-foreground: hsl(0 0% 5%);
+  --secondary: hsl(312, 100%, 50%); /* magenta as secondary */
+  --secondary-foreground: hsl(0 0% 5%);
+  --accent: hsl(330 100% 70%); /* even brighter magenta for accents */
+  --accent-foreground: hsl(0 0% 5%);
+  --muted: hsl(300 10% 15%);
+  --muted-foreground: hsl(300 10% 70%);
+  --accent: hsl(270 85% 70%); /* #c084fc purple */
+  --accent-foreground: hsl(0 0% 8%);
+  --destructive: hsl(0 85% 60%);
+  --destructive-foreground: hsl(0 0% 98%);
+  --border: hsl(330 40% 35% / 0.5); /* magenta-tinted subtle neon border */
+  --input: hsl(330 40% 35% / 0.5);
+  --ring: hsl(312, 100%, 50%); /* neon magenta focus ring */
+  --chart-1: hsl(174, 100%, 50%);
+  --chart-2: hsl(312, 100%, 50%);
+  --chart-3: hsl(270 85% 70%);
+  --chart-4: hsl(180 90% 70%);
+  --chart-5: hsl(330 90% 70%);
+  --sidebar: hsl(300 15% 8%);
+  --sidebar-foreground: hsl(300 15% 92%);
+  --sidebar-primary: hsl(312, 100%, 50%);
+  --sidebar-primary-foreground: hsl(0 0% 8%);
+  --sidebar-accent: hsl(270 85% 70%);
+  --sidebar-accent-foreground: hsl(0 0% 8%);
+  --sidebar-border: hsl(330 40% 35% / 0.5);
+  --sidebar-ring: hsl(312, 100%, 50%);
+}
+
+/* Map to Tailwind utilities – this makes bg-primary, text-foreground, etc. work */
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-cyber-primary: var(--color-cyber-primary);
+  --color-cyber-bg: var(--color-cyber-bg);
+  --color-cyber-surface: var(--color-cyber-surface);
+  --color-cyber-secondary: var(--color-cyber-secondary);
+  --color-cyber-purple: var(--color-cyber-purple);
+  --color-cyber-pink: var(--color-cyber-pink);
+}
+
+/* Neon effects */
 @layer utilities {
   .neon-shadow-hover {
-    @apply hover:shadow-[0_0_15px] hover:shadow-cyber-primary;
+    @apply hover:shadow-[0_0_15px] hover:shadow-secondary;
   }
 
   .neon-underline {
@@ -23,19 +160,46 @@
 .neon-underline::after {
   content: '';
   position: absolute;
-  bottom: 4px; /* adjust based on padding */
-  left: 10;
+  bottom: -2px;
+  left: 0;
   height: 2px;
   width: 0;
-  bottom: -2;
-  background-color: var(--color-cyber-primary);
-  box-shadow: 0 0 8px var(--color-cyber-primary);
+  background-color: var(--secondary);
+  box-shadow:
+    0 0 8px var(--secondary),
+    0 0 15px var(--secondary);
   transition: width 300ms ease-in-out;
 }
 
+.neon-underline:hover::after,
 .neon-underline:focus-within::after {
-  width: calc(100% - 18px);
-  bottom: 0;
-  left: 10;
-  height: 2px;
+  width: 100%;
+}
+
+/* Base styles */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body {
+    font-family:
+      var(--font-orbitron), 'Orbitron', sans-serif; /* fallback to system if needed */
+  }
+
+  /* Or target specific elements if you want Orbitron only on headings/titles */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-orbitron), 'Orbitron', sans-serif;
+    font-weight: 700; /* or 400 */
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
 }

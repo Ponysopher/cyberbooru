@@ -2,22 +2,22 @@
 import Image from 'next/image';
 import { CheckSquare, Square, Tag } from 'lucide-react';
 import clsx from 'clsx';
+import { useState } from 'react';
 
 interface ImageCardProps {
   imgPath: string;
   selected?: boolean; // is this image currently batch‐selected?
-  onToggleSelect?: () => void; // callback when user toggles selection
   tagCount?: number; // how many tags already applied?
   // onClick?: () => void;       // optional click (e.g. open modal)
 }
 
 export default function ImageCard({
   imgPath,
-  selected = false,
-  onToggleSelect,
   tagCount = 0,
   // onClick, // Let's style the modal at a later step
 }: ImageCardProps) {
+  const [selected, setSelected] = useState<boolean>(false);
+
   const imgSrc = `/api/image/${encodeURIComponent(imgPath)}`;
 
   return (
@@ -45,7 +45,7 @@ export default function ImageCard({
       {/* Hover overlay (hidden by default) */}
       <div
         className={clsx(
-          'absolute inset-0 p-2 flex flex-col justify-between',
+          'text-secondary absolute inset-0 p-2 flex flex-col justify-between',
           'transition-all duration-300 ease-in-out transform',
           selected
             ? 'opacity-100 translate-y-0'
@@ -54,12 +54,12 @@ export default function ImageCard({
       >
         {/* top-left: checkbox */}
         <button
-          onClick={onToggleSelect}
+          onClick={() => setSelected(!selected)}
           // className={selected ? "ring" : ""}
         >
           {/* show a checked or square icon based on `selected` */}
           {selected ? (
-            <CheckSquare className="shadow-[0_0_20px] shadow-cyber-purple" />
+            <CheckSquare className="shadow-[0_0_20px] shadow-secondary" />
           ) : (
             <Square />
           )}

@@ -15,7 +15,7 @@ export default function Page() {
 
         <section className="relative">
           <h2 className="px-2 mb-1">Tags</h2>
-          <div className="neon-underline">
+          <div className="neon-underline-animated">
             <input
               type="text"
               className={clsx(

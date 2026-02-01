@@ -153,11 +153,15 @@
   }
 
   .neon-underline {
+    @apply border-b-2;
+  }
+
+  .neon-underline-animated {
     @apply relative;
   }
 }
 
-.neon-underline::after {
+.neon-underline-animated::after {
   content: '';
   position: absolute;
   bottom: -2px;
@@ -171,8 +175,8 @@
   transition: width 300ms ease-in-out;
 }
 
-.neon-underline:hover::after,
-.neon-underline:focus-within::after {
+.neon-underline-animated:hover::after,
+.neon-underline-animated:focus-within::after {
   width: 100%;
 }
 

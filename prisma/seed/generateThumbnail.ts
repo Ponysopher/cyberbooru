@@ -15,6 +15,10 @@ export default async function generateThumbnail(
     throw new Error(`Image file does not exist: ${imagePath}`);
   }
 
+  if (imagePath === thumbnailPath) {
+    throw new Error('Image path and thumbnail path cannot be the same.');
+  }
+
   try {
     await sharp(imagePath).resize(300, 300).toFile(thumbnailPath);
   } catch (err) {

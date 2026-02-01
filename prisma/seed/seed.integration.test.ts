@@ -2,23 +2,27 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getPrismaClient } from '../client-handle';
 import seed from './seed';
 
-const EXPECTED_IMAGE_PATHS = [
+const EXPECTED_IMAGE_FILE_NAMES = [
   '133196374_p0.png',
   'GxC1rOAX0AAunLs.jpeg',
   '129193482_p0_master1200.jpg',
   '133341258_p0.png',
   '133154851_p0.jpg',
   'Rubjoy_Polyphallography.png',
-]
-  .map((fileName) => `sample_images/${fileName}`)
-  .sort();
+];
+const EXPECTED_IMAGE_PATHS = EXPECTED_IMAGE_FILE_NAMES.map(
+  (fileName) => `sample_images/${fileName}`,
+).sort();
+const EXPECTED_IMAGE_THUMBNAIL_PATHS = EXPECTED_IMAGE_FILE_NAMES.map(
+  (fileName) => `thumbnails/${fileName}`,
+).sort();
 
 const EXPECTED_IMAGE_COUNT = EXPECTED_IMAGE_PATHS.length;
 
 async function seed_and_report() {
   await seed();
   const prisma = getPrismaClient();
-  const images = await prisma.image.findMany();
+  await prisma.image.findMany();
   await prisma.$disconnect();
 }
 
@@ -29,7 +33,7 @@ describe('seeding script main', () => {
     await prisma.$disconnect();
   });
 
-  it('Should log the records of the expected number of images', async () => {
+  it('should log the records of the expected number of images', async () => {
     const logSpy = vi.spyOn(console, 'log');
 
     await seed();
@@ -55,7 +59,7 @@ describe('seeding script main', () => {
     );
   });
 
-  it('should upsert the expected number of images to the database', async () => {
+  it('should upsert the expected number of images to the database with the correct full paths', async () => {
     await seed();
 
     const prisma = getPrismaClient();
@@ -64,6 +68,17 @@ describe('seeding script main', () => {
     );
     await prisma.$disconnect();
     expect(imagePaths.sort()).toEqual(EXPECTED_IMAGE_PATHS);
+  });
+
+  it('should upsert the expected number of images to the database with the correct thumbnail paths', async () => {
+    await seed();
+
+    const prisma = getPrismaClient();
+    const imagePaths = (await prisma.image.findMany()).map(
+      ({ thumbnailPath }) => thumbnailPath,
+    );
+    await prisma.$disconnect();
+    expect(imagePaths.sort()).toEqual(EXPECTED_IMAGE_THUMBNAIL_PATHS);
   });
 
   it('should only change database timestamps on subsequent runs with no changes to the files', async () => {

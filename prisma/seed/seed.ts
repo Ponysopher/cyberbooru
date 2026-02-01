@@ -27,7 +27,18 @@ export async function getSeedImageData(
 
   if (files.length === 0) return [];
 
-  const generateThumbnails = thumbnailDir && fs.existsSync(thumbnailDir);
+  const thumbnailDirExists = thumbnailDir && fs.existsSync(thumbnailDir!);
+  if (!thumbnailDir) {
+    console.warn(
+      'No thumbnail directory provided. Thumbnails will not be generated.',
+    );
+  }
+  if (thumbnailDir && !thumbnailDirExists) {
+    console.warn(
+      `Thumbnail directory ${thumbnailDir} does not exist. Thumbnails will not be generated.`,
+    );
+  }
+  const generateThumbnails = thumbnailDir && thumbnailDirExists;
 
   const images: ImageModel[] = [];
   for (const file of files) {
@@ -96,7 +107,7 @@ export default async function seed(): Promise<void> {
     console.error('BASE_IMAGES_PATH environment variable is not set.');
     return;
   }
-  const thumbnailDir = process.env.BASE_IMAGES_PATH;
+  const thumbnailDir = process.env.BASE_THUMBNAILS_PATH;
   if (!fullDir) {
     console.warn(
       'BASE_IMAGES_PATH environment variable is not set. Thumbnails will not be generated.',

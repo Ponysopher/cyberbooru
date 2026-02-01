@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @config "../tailwind.config.ts";
 
 @theme {
@@ -7,6 +7,7 @@
   --color-cyber-surface: #1e1e1e;
   --color-cyber-secondary: #00ffe7;
   --color-cyber-purple: #c084fc;
+  --color-cyber-pink: #ff0080;
 }
 
 @layer utilities {
@@ -20,7 +21,7 @@
 }
 
 .neon-underline::after {
-  content: "";
+  content: '';
   position: absolute;
   bottom: 4px; /* adjust based on padding */
   left: 10;

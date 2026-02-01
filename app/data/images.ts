@@ -3,6 +3,7 @@ import { getPrismaClient } from '@/prisma/client-handle';
 export interface ImageInfo {
   id: number;
   filePath: string;
+  thumbnailPath: string;
   createdAt: Date;
   tags: string[];
 }
@@ -42,7 +43,8 @@ export async function get_image_paths(
     // Format the result for clean output
     const formattedImages = firstImages.map((image) => ({
       id: image.id,
-      filePath: strip_base_path(image.fullPath),
+      filePath: image.fullPath,
+      thumbnailPath: image.thumbnailPath,
       createdAt: image.createdAt,
       tags: image.ImageTags.map(({ tag }) => tag.name), // Extract tag names
     }));

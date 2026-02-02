@@ -3,13 +3,6 @@ import { get_image_paths, ImageInfo } from '@/app/data/images';
 
 const IMAGE_LIMIT = 6;
 
-const siteURL =
-  process.env.NODE_ENV === 'production'
-    ? process.env.NEXT_PUBLIC_BASE_SITE_URL
-    : 'http://localhost:3000';
-if (!siteURL) throw new Error('BASE_SITE_URL is not defined');
-console.log('Site URL:', siteURL);
-
 const ImageGallery = async () => {
   const imageData: ImageInfo[] = await get_image_paths(IMAGE_LIMIT);
   console.log('Fetched image data:', imageData);

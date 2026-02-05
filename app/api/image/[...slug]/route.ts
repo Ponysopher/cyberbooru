@@ -3,6 +3,27 @@ import fs from 'fs';
 import fsPromises from 'fs/promises';
 import { getContentType } from '@/app/util/image-exts';
 
+// Helper function to convert Node.js ReadableStream to Web ReadableStream
+// This is necessary because NextResponse expects a Web ReadableStream,
+// but fs.createReadStream returns a Node.js ReadableStream.
+// Failure to convert properly can lead to issues where the response is empty or doesn't stream correctly.
+// (e.g., TypeError: Invalid state: ReadableStream is already closed).
+// fsPromises.readFile(imagePath) would allow us to read the entire file into memory, but for large images,
+// this could lead to high memory usage.
+function nodeStreamToWeb(stream: fs.ReadStream): ReadableStream<Uint8Array> {
+  const reader = stream[Symbol.asyncIterator]();
+  return new ReadableStream({
+    async pull(controller) {
+      const { value, done } = await reader.next();
+      if (done) controller.close();
+      else controller.enqueue(new Uint8Array(value));
+    },
+    cancel() {
+      stream.destroy();
+    },
+  });
+}
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ slug: string[] }> },
@@ -30,9 +51,8 @@ export async function GET(
       return new NextResponse('Image not found', { status: 404 });
     }
 
-    const stream = fs.createReadStream(imagePath);
-
-    return new NextResponse(stream as unknown as BodyInit, {
+    const stream = nodeStreamToWeb(fs.createReadStream(imagePath));
+    return new NextResponse(stream, {
       headers: {
         'Content-Type': getContentType(imagePath),
         'Content-Length': stats.size.toString(),

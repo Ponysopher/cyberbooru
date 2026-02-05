@@ -1,6 +1,7 @@
 onlyBuiltDependencies:
   - '@prisma/engines'
   - better-sqlite3
+  - core-js
   - esbuild
   - prisma
   - sharp

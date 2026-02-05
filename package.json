@@ -6,10 +6,12 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "npx eslint .",
-    "seed": "npx tsx ./prisma/seed/seed.ts",
+    "lint": "dlsx eslint .",
+    "seed": "dlxs tsx ./prisma/seed/seed.ts",
     "test": "vitest",
-    "test:watch": "vitest:watch"
+    "test:integration": "vitest --config vitest-configs/vitest.integration.config.mts",
+    "test:unit": "vitest --config vitest-configs/vitest.unit.config.mts",
+    "test:api": "vitest --config vitest-configs/vitest.api.config.mts"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.2.0",
@@ -50,6 +52,8 @@
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.1",
     "happy-dom": "^20.1.0",
+    "memfs": "^4.56.10",
+    "next-test-api-route-handler": "^5.0.3",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
     "prisma": "^7.2.0",

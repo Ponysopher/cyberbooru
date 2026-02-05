@@ -16,8 +16,17 @@ export async function GET(
       return new NextResponse('Forbidden', { status: 403 });
     }
 
+    if (
+      !fs.existsSync(imagePath) ||
+      !(await fsPromises.stat(imagePath)).isFile()
+    ) {
+      console.error('Image not found:', imagePath);
+      return new NextResponse('Image not found', { status: 404 });
+    }
+
     const stats = await fsPromises.stat(imagePath);
     if (!stats.isFile()) {
+      console.error('Path is not a file: ', imagePath);
       return new NextResponse('Image not found', { status: 404 });
     }
 

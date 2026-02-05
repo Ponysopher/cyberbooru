@@ -8,9 +8,9 @@ export default defineConfig({
   plugins: [tsconfigPaths(), react()],
 
   test: {
-    name: 'unit',
-    environment: 'happy-dom',
-    include: ['**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}'], // adjust patterns
+    name: 'api',
+    environment: 'node',
+    include: ['**/*.api.test.{ts,tsx}'],
     setupFiles: [MAIN_SETUP_FILE],
   },
 });

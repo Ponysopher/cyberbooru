@@ -7,13 +7,24 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ limit?: string; offset?: string }> },
 ) {
+  const queryParams = new URL(_request.url).searchParams;
   const limit = Math.min(
-    parseInt((await params)?.limit || HARD_LIMIT.toString(), 10),
+    parseInt(
+      queryParams.get('limit') ||
+        (await params)?.limit ||
+        HARD_LIMIT.toString(),
+      10,
+    ),
     HARD_LIMIT,
   );
 
+  const offset = parseInt(
+    queryParams.get('limit') || (await params)?.offset || '0',
+    10,
+  );
+
   try {
-    const images = await get_image_paths(limit);
+    const images = await get_image_paths(limit, offset);
     return NextResponse.json(images);
   } catch (error) {
     console.error('Failed to fetch images:', error);

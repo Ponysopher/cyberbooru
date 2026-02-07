@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -55,6 +56,7 @@ const FileUploader = () => {
         <DialogHeader>
           <DialogTitle className="text-xl neon-underline">Upload</DialogTitle>
         </DialogHeader>
+        <DialogDescription>Please upload one or more images</DialogDescription>
         <div className="bg-background p-4 flex flex-col gap-4 text-muted-foreground">
           <Field className="flex flex-col gap-2 rounded-lg border border-border p-4 bg-background/50">
             <FieldLabel

@@ -36,6 +36,8 @@ export default function ImageCard({
           alt="Failed to load image"
           fill
           className="object-cover"
+          // Define the sizes attribute to optimize loading for different screen sizes
+          sizes="(max-width: 1000px) 298px, (max-width: 1250px) 228px, (max-width: 1519px) 190px"
         />
       ) : (
         // Skeleton while loading image

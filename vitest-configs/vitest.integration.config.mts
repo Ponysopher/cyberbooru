@@ -10,7 +10,7 @@ export default defineConfig({
   test: {
     name: 'integration',
     environment: 'node',
-    include: ['**/*.{integration}.test.{ts,tsx}'],
+    include: ['**/*.integration.test.{ts,tsx}'],
     setupFiles: [MAIN_SETUP_FILE],
   },
 });

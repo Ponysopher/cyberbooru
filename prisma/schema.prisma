@@ -9,6 +9,11 @@ datasource db {
   provider = "postgresql"
 }
 
+generator zod {
+  provider = "prisma-zod-generator"
+  mode = "minimal"
+}
+
 model Image {
   id              Int       @id @default(autoincrement())
   fullPath        String    @unique

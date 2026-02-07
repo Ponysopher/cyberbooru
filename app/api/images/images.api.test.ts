@@ -88,7 +88,6 @@ describe('/api/images', () => {
         expect(res.headers.get('content-type')).toBe('application/json');
 
         const data = await res.json();
-        // console.log('API response data:', data);
         expect(data).toHaveLength(2);
         expect(data).toEqual(SAMPLE_IMAGES);
       },

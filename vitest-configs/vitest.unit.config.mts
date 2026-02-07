@@ -9,7 +9,7 @@ export default defineConfig({
 
   test: {
     name: 'unit',
-    environment: 'happy-dom',
+    environment: 'node',
     include: ['**/*.{spec, unit}.{ts,tsx}'],
     setupFiles: [MAIN_SETUP_FILE],
   },

@@ -40,7 +40,7 @@ const FileUploader = () => {
 
   return (
     <Dialog>
-      <DialogTrigger>Upload</DialogTrigger>
+      <DialogTrigger className="cursor-pointer">Upload</DialogTrigger>
       <DialogContent
         className="
           bg-card

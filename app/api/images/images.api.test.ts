@@ -8,13 +8,10 @@ interface ImagesApiTestParams {
   offset?: string;
 }
 
-type QueriedImageWithStringDates = Omit<QueriedImage, 'createdAt'> & {
-  createdAt: string | Date;
-};
+type StableQueriedImage = Omit<QueriedImage, 'createdAt' | 'id'>;
 
-const SAMPLE_IMAGES: QueriedImageWithStringDates[] = [
+const SAMPLE_IMAGES: StableQueriedImage[] = [
   {
-    id: 343,
     fullPath: 'sample_images/Rubjoy_Polyphallography.png',
     thumbnailPath: 'thumbnails/Rubjoy_Polyphallography.png',
     largePath: null,
@@ -28,11 +25,9 @@ const SAMPLE_IMAGES: QueriedImageWithStringDates[] = [
     source: 'local-seed',
     nsfw: true,
     groupId: null,
-    createdAt: '2026-02-05T00:38:19.658Z',
     ImageTags: [],
   },
   {
-    id: 342,
     fullPath: 'sample_images/GxC1rOAX0AAunLs.jpeg',
     thumbnailPath: 'thumbnails/GxC1rOAX0AAunLs.jpeg',
     largePath: null,
@@ -46,18 +41,23 @@ const SAMPLE_IMAGES: QueriedImageWithStringDates[] = [
     source: 'local-seed',
     nsfw: true,
     groupId: null,
-    createdAt: '2026-02-05T00:38:19.656Z',
     ImageTags: [],
   },
 ];
 
+function getStableObject(queriedImage: QueriedImage): StableQueriedImage {
+  const { createdAt, id, ...stableImage } = queriedImage;
+  return stableImage;
+}
+
 async function testApiHandlerGeneric(
   test: ({ fetch }: { fetch: any }) => Promise<void>,
   params: ImagesApiTestParams,
+  url = '/api/images/',
 ) {
   await testApiHandler({
     appHandler,
-    url: '/api/images/',
+    url,
     params: params as Record<string, string>,
     test,
   });
@@ -87,11 +87,32 @@ describe('/api/images', () => {
         expect(res.status).toBe(200);
         expect(res.headers.get('content-type')).toBe('application/json');
 
-        const data = await res.json();
+        const data = (await res.json()).map((elem: QueriedImage) =>
+          getStableObject(elem),
+        );
         expect(data).toHaveLength(2);
         expect(data).toEqual(SAMPLE_IMAGES);
       },
       { limit: '2' },
+    );
+  });
+
+  it('properly accepts limit and offset query params', async () => {
+    await testApiHandlerGeneric(
+      async ({ fetch }) => {
+        const res = await fetch();
+
+        expect(res.status).toBe(200);
+        expect(res.headers.get('content-type')).toBe('application/json');
+
+        const data = (await res.json()).map((elem: QueriedImage) =>
+          getStableObject(elem),
+        );
+        expect(data).toHaveLength(1);
+        expect(data).toEqual(SAMPLE_IMAGES.slice(1));
+      },
+      {},
+      '/api/images/?limit=1&offset=1',
     );
   });
 });

@@ -108,9 +108,9 @@ export default async function seed(): Promise<void> {
     return;
   }
   const thumbnailDir = process.env.BASE_THUMBNAILS_PATH;
-  if (!fullDir) {
+  if (!thumbnailDir) {
     console.warn(
-      'BASE_IMAGES_PATH environment variable is not set. Thumbnails will not be generated.',
+      'BASE_THUMBNAILS_PATH environment variable is not set. Thumbnails will not be generated.',
     );
   }
 

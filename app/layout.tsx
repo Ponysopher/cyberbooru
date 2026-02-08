@@ -1,6 +1,6 @@
 import './layout.css';
 import { Orbitron } from 'next/font/google';
-import { ThemeProvider } from '@/lib/theme-provider';
+import { ThemeProvider } from '@/app/util/theme-provider';
 
 const orbitron = Orbitron({
   subsets: ['latin'],

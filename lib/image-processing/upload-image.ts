@@ -2,7 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import { ProcessImageInput } from './types';
 
-export async function upload_image(image: ProcessImageInput): Promise<string> {
+export default async function upload_image(
+  image: ProcessImageInput,
+): Promise<string> {
   const fullDir = process.env.BASE_IMAGES_PATH;
   if (!fullDir) {
     const errorMesage = 'BASE_IMAGES_PATH environment variable is not set.';

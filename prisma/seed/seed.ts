@@ -1,11 +1,11 @@
-import path from 'path';
-import sharp from 'sharp';
-import cypto from 'crypto';
-import { getPrismaClient } from '../client-handle';
-import type { Image } from '../generated/prisma/client';
-import { scanLocalImages } from './scanLocalImages';
-import generateThumbnail from './generateThumbnail';
 import fs from 'fs';
+
+import type { Image } from '../generated/prisma/client';
+import { inputFromPath } from '@/lib/image-processing/input-adapters';
+import generate_thumbnail from '@/lib/image-processing/generate-thumbnail';
+import { getPrismaClient } from '../client-handle';
+import get_metadata from '@/lib/image-processing/get-metadata';
+import { scanLocalImages } from './scanLocalImages';
 
 export type ImageModel = Omit<
   Image,
@@ -41,46 +41,18 @@ export async function getSeedImageData(
   const generateThumbnails = thumbnailDir && thumbnailDirExists;
 
   const images: ImageModel[] = [];
-  for (const file of files) {
-    const fullPath = file;
-
-    // Basic metadata
-    const stats = fs.statSync(fullPath);
-    if (!stats.size) {
-    }
-    const fileSizeKB = Math.round((stats.size || 0) / 1024);
-
-    // Get dimensions and hashes using sharp
-    let width: number | null = null;
-    let height: number | null = null;
-    let sha256Hash: string | null = null;
-    let mimeType: string | null = null;
-
-    // Use sharp to get image metadata and hash
-    try {
-      const image = sharp(fullPath);
-      const metadata = await image.metadata();
-      width = metadata.width || null;
-      height = metadata.height || null;
-      mimeType = `image/${metadata.format}`;
-
-      const buffer = await image.toBuffer();
-      sha256Hash = cypto.createHash('sha256').update(buffer).digest('hex');
-    } catch (err) {
-      console.warn(`Could not process ${file} with sharp:`, err);
-    }
+  for (const fullPath of files) {
+    const { width, height, sha256Hash, mimeType, fileSizeKB } =
+      await get_metadata(await inputFromPath(fullPath));
 
     // Simple thumbnail generation
-    let generatedThumbnailPath: string | undefined;
+    let generatedThumbnailPath: string | null | undefined;
     if (generateThumbnails) {
-      generatedThumbnailPath = (
-        await generateThumbnail(
-          fullPath,
-          path.join(thumbnailDir, path.basename(fullPath)),
-        )
-      ).thumbnailPath;
+      generatedThumbnailPath = await generate_thumbnail(
+        await inputFromPath(fullPath),
+      );
       if (!generatedThumbnailPath) {
-        console.error(`Could not generate thumbnail for ${file}`);
+        console.error(`Could not generate thumbnail for ${fullPath}`);
       }
     }
 
@@ -127,30 +99,11 @@ export default async function seed(): Promise<void> {
   let failureCount = 0;
 
   for (const img of images) {
-    const {
-      fullPath,
-      thumbnailPath,
-      width,
-      height,
-      fileSizeKB,
-      sha256Hash,
-      nsfw,
-      source,
-    } = img;
-
+    const { fullPath } = img;
     try {
       // Try to create first (fast path when record doesn't exist)
       await prisma.image.create({
-        data: {
-          fullPath,
-          thumbnailPath: thumbnailPath || fullPath,
-          width,
-          height,
-          fileSizeKB,
-          sha256Hash,
-          nsfw,
-          source,
-        },
+        data: img,
       });
       insertCount++;
     } catch (err: any) {
@@ -159,15 +112,7 @@ export default async function seed(): Promise<void> {
         // Overwrite
         await prisma.image.update({
           where: { fullPath },
-          data: {
-            thumbnailPath: thumbnailPath || fullPath,
-            width,
-            height,
-            fileSizeKB,
-            sha256Hash,
-            nsfw,
-            source,
-          },
+          data: img,
         });
         duplicateCount++;
       } else {

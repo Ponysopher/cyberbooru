@@ -1,13 +1,12 @@
 import sharp from 'sharp';
 import cypto from 'crypto';
-import { ImageMetadata } from './types';
+import { ImageMetadata, ProcessImageInput } from './types';
 
-export default async function get_image_buffer_metadata(
-  imageFile: File,
+export default async function get_metadata(
+  imageData: ProcessImageInput,
 ): Promise<ImageMetadata> {
-  const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
   try {
-    const image = sharp(imageBuffer);
+    const image = sharp(imageData.buffer);
     const metadata = await image.metadata();
     const buffer = await image.toBuffer();
     return {
@@ -15,7 +14,7 @@ export default async function get_image_buffer_metadata(
       height: metadata.height || null,
       mimeType: `image/${metadata.format}`,
       sha256Hash: cypto.createHash('sha256').update(buffer).digest('hex'),
-      fileSizeKB: Math.round((imageFile.size || 0) / 1024),
+      fileSizeKB: Math.round((metadata.size || 0) / 1024),
       nsfw: true,
     };
   } catch (error) {

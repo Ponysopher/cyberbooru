@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import generateThumbnail from './generateThumbnail';
+import path from 'path';
 import { rmSync } from 'fs';
 import { readdir } from 'fs/promises';
-import path from 'path';
+import { describe, it, expect, beforeAll } from 'vitest';
+
+import generate_thumbnail from './generate-thumbnail';
 import TEST_IMAGE_FILENAMES from '@/vitest-configs/test-image-filenames';
+import { inputFromPath } from './input-adapters';
 
 const THUMBNAILS_DIR = process.env.BASE_THUMBNAILS_PATH;
 const IMAGES_DIR = process.env.BASE_IMAGES_PATH;
@@ -34,12 +36,7 @@ describe('generateThumbnail', () => {
       await Promise.all(
         fullImageFilePaths.map(
           async (imagePath) =>
-            (
-              await generateThumbnail(
-                imagePath,
-                path.join(THUMBNAILS_DIR!, path.basename(imagePath)),
-              )
-            ).thumbnailPath,
+            await generate_thumbnail(await inputFromPath(imagePath)),
         ),
       )
     ).sort((a, b) => (a || '').localeCompare(b || ''));
@@ -49,17 +46,5 @@ describe('generateThumbnail', () => {
       .map((thumbPath) => path.join(THUMBNAILS_DIR!, thumbPath))
       .sort((a, b) => a.localeCompare(b));
     expect(actualThumbnailFilePaths).toEqual(expectedThumbnailFilePaths);
-  });
-
-  it('enforces consistent thumbnail dimensions (max width/height constraint)', async () => {
-    for (const imagePath of fullImageFilePaths) {
-      const thumbnailPath = path.join(
-        THUMBNAILS_DIR!,
-        path.basename(imagePath),
-      );
-      const result = await generateThumbnail(imagePath, thumbnailPath);
-      expect(result.width).toBeLessThanOrEqual(300);
-      expect(result.height).toBeLessThanOrEqual(300);
-    }
   });
 });

@@ -1,7 +1,6 @@
+import { SUPPORTED_IMAGE_FORMATS_REGEX } from '@/constants';
 import fs from 'fs';
 import { promises as fsp } from 'fs';
-
-export const SUPPORTED_IMAGE_FORMATS_REGEX = /\.(jpe?g|png|webp)$/i;
 
 interface ScanOptions {
   recurse?: boolean;

@@ -1,17 +1,14 @@
 import { testApiHandler } from 'next-test-api-route-handler';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as appHandler from './route';
 import { get_image_paths, QueriedImage } from '@/app/data/images';
+import { ImageModel } from '@/prisma/generated/prisma/models';
 
-interface ImagesApiTestParams {
-  limit?: string;
-  offset?: string;
-}
+type SampleImage = Omit<ImageModel, 'ImageTags'>;
 
-type StableQueriedImage = Omit<QueriedImage, 'createdAt' | 'id'>;
-
-const SAMPLE_IMAGES: StableQueriedImage[] = [
+const SAMPLE_IMAGES = [
   {
+    id: 1,
     fullPath: 'sample_images/Rubjoy_Polyphallography.png',
     thumbnailPath: 'thumbnails/Rubjoy_Polyphallography.png',
     largePath: null,
@@ -25,9 +22,11 @@ const SAMPLE_IMAGES: StableQueriedImage[] = [
     source: 'local-seed',
     nsfw: true,
     groupId: null,
+    createdAt: new Date(),
     ImageTags: [],
   },
   {
+    id: 2,
     fullPath: 'sample_images/GxC1rOAX0AAunLs.jpeg',
     thumbnailPath: 'thumbnails/GxC1rOAX0AAunLs.jpeg',
     largePath: null,
@@ -41,29 +40,33 @@ const SAMPLE_IMAGES: StableQueriedImage[] = [
     source: 'local-seed',
     nsfw: true,
     groupId: null,
+    createdAt: new Date(),
     ImageTags: [],
   },
 ];
 
-function getStableObject(queriedImage: QueriedImage): StableQueriedImage {
-  const { createdAt, id, ...stableImage } = queriedImage;
-  return stableImage;
+function getStableObject(obj: SampleImage) {
+  const newObj = { ...obj };
+  newObj.createdAt = new Date(newObj.createdAt);
+  return newObj;
 }
 
 async function testApiHandlerGeneric(
   test: ({ fetch }: { fetch: any }) => Promise<void>,
-  params: ImagesApiTestParams,
-  url = '/api/images/',
+  url: string,
 ) {
   await testApiHandler({
     appHandler,
     url,
-    params: params as Record<string, string>,
     test,
   });
 }
 
 describe('/api/images', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('calls get_image_paths only once', async () => {
     vi.mock('@/app/data/images', { spy: true });
 
@@ -74,45 +77,38 @@ describe('/api/images', () => {
       expect(res.headers.get('content-type')).toBe('application/json');
 
       expect(get_image_paths).toHaveBeenCalledTimes(1);
-    }, {});
+    }, '/api/images');
   });
 
   it('returns JSON matching that server action output', async () => {
     vi.mock('@/app/data/images', { spy: true });
+    vi.mocked(get_image_paths).mockResolvedValue(SAMPLE_IMAGES);
 
-    await testApiHandlerGeneric(
-      async ({ fetch }) => {
-        const res = await fetch();
+    await testApiHandlerGeneric(async ({ fetch }) => {
+      const res = await fetch();
 
-        expect(res.status).toBe(200);
-        expect(res.headers.get('content-type')).toBe('application/json');
+      expect(res.status).toBe(200);
+      expect(res.headers.get('content-type')).toBe('application/json');
 
-        const data = (await res.json()).map((elem: QueriedImage) =>
-          getStableObject(elem),
-        );
-        expect(data).toHaveLength(2);
-        expect(data).toEqual(SAMPLE_IMAGES);
-      },
-      { limit: '2' },
-    );
+      const data = (await res.json()).map((elem: SampleImage) =>
+        getStableObject(elem),
+      );
+      expect(data).toEqual(SAMPLE_IMAGES);
+    }, '/api/images');
   });
 
   it('properly accepts limit and offset query params', async () => {
-    await testApiHandlerGeneric(
-      async ({ fetch }) => {
-        const res = await fetch();
+    vi.mocked(get_image_paths).mockResolvedValue([SAMPLE_IMAGES[1]]);
+    await testApiHandlerGeneric(async ({ fetch }) => {
+      const res = await fetch();
 
-        expect(res.status).toBe(200);
-        expect(res.headers.get('content-type')).toBe('application/json');
+      expect(res.status).toBe(200);
+      expect(res.headers.get('content-type')).toBe('application/json');
 
-        const data = (await res.json()).map((elem: QueriedImage) =>
-          getStableObject(elem),
-        );
-        expect(data).toHaveLength(1);
-        expect(data).toEqual(SAMPLE_IMAGES.slice(1));
-      },
-      {},
-      '/api/images/?limit=1&offset=1',
-    );
+      const data = (await res.json()).map((elem: SampleImage) =>
+        getStableObject(elem),
+      );
+      expect(data).toEqual(SAMPLE_IMAGES.slice(1));
+    }, '/api/images?limit=1&offset=1');
   });
 });

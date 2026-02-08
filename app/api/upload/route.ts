@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { SUPPORTED_IMAGE_FORMATS_REGEX } from '@/constants';
+import { process_upload } from '@/lib/image-processing/process-upload';
+import { inputFromFile } from '@/lib/image-processing/input-adapters';
+import { error } from 'console';
 
-interface FileUploadResult {
+interface FileReadResult {
   name: string;
   size: number;
   type: string;
@@ -21,17 +24,14 @@ export async function POST(request: Request) {
   const files = formData.getAll('files') as File[];
   if (file) files.push(...file);
 
-  const fileUploadResults: FileUploadResult[] = [];
+  const fileReadResults: FileReadResult[] = [];
   for (const file of files) {
-    // console.log(file.name, file.size, file.type);
-    // file.arrayBuffer() is available here
     try {
       const fileData = {
         name: file.name,
         size: file.size,
         type: file.type,
       };
-      console.log(fileData);
 
       if (!file.type.toLowerCase().startsWith('image/')) {
         console.error('file type does not start with image/', file.type);
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
         );
       }
 
-      fileUploadResults.push({ success: true, ...fileData });
+      fileReadResults.push({ success: true, ...fileData });
     } catch (error) {
       console.error('Processing error', error);
       return NextResponse.json(
@@ -60,5 +60,17 @@ export async function POST(request: Request) {
     }
   }
 
-  return NextResponse.json(fileUploadResults, { status: 201 });
+  const dbImages = [];
+  for (const file of files) {
+    try {
+      dbImages.push(await process_upload(await inputFromFile(file)));
+    } catch {
+      return NextResponse.json(
+        { error: 'Failed up to upload image' },
+        { status: 500 },
+      );
+    }
+  }
+
+  return NextResponse.json(dbImages, { status: 201 });
 }

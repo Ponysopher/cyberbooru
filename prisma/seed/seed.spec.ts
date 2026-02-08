@@ -51,21 +51,4 @@ describe('getSeedImageData', () => {
       /no.*provided/i,
     );
   });
-
-  it('generates thumbnails when requested', async () => {
-    const thumbnailDir = path.join(process.env.BASE_IMAGES_PATH!, 'thumbnails');
-    if (!fs.existsSync(thumbnailDir)) {
-      fs.mkdirSync(thumbnailDir);
-    }
-
-    const imageData = await getSeedImageData(
-      process.env.BASE_IMAGES_PATH!,
-      thumbnailDir,
-    );
-
-    imageData.forEach(({ thumbnailPath }) => {
-      expect(thumbnailPath).toBeDefined();
-      expect(fs.existsSync(thumbnailPath!)).toBe(true);
-    });
-  });
 });

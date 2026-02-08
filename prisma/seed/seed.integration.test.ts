@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getPrismaClient } from '../client-handle';
-import seed from './seed';
+import seed, { getSeedImageData } from './seed';
 import TEST_IMAGE_FILENAMES from '@/vitest-configs/test-image-filenames';
+import path from 'path';
+import fs from 'fs';
 
 const EXPECTED_IMAGE_PATHS = TEST_IMAGE_FILENAMES.map(
   (fileName) => `sample_images/${fileName}`,
@@ -79,5 +81,22 @@ describe('seeding script main', () => {
     const images2 = await seed_and_report();
 
     expect(images1).toEqual(images2);
+  });
+
+  it('generates thumbnails when requested', async () => {
+    const thumbnailDir = path.join(process.env.BASE_IMAGES_PATH!, 'thumbnails');
+    if (!fs.existsSync(thumbnailDir)) {
+      fs.mkdirSync(thumbnailDir);
+    }
+
+    const imageData = await getSeedImageData(
+      process.env.BASE_IMAGES_PATH!,
+      thumbnailDir,
+    );
+
+    imageData.forEach(({ thumbnailPath }) => {
+      expect(thumbnailPath).toBeDefined();
+      expect(fs.existsSync(thumbnailPath!)).toBe(true);
+    });
   });
 });

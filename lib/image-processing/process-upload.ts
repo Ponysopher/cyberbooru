@@ -40,12 +40,13 @@ export async function process_upload(
     return image;
   } catch (error) {
     // ---- COMPENSATION / ROLLBACK ----
+    console.error(error);
 
     // Delete DB row if created
     if (dbRecordId) {
       await prisma.image.delete({ where: { id: dbRecordId } }).catch(() => {});
-      prisma.$disconnect();
     }
+    prisma.$disconnect();
 
     // Delete files if created
     if (originalPath) {

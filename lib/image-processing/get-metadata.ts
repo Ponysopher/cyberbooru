@@ -8,12 +8,14 @@ export default async function get_metadata(
   try {
     const image = sharp(imageData.buffer);
     const metadata = await image.metadata();
-    const buffer = await image.toBuffer();
     return {
       width: metadata.width || null,
       height: metadata.height || null,
       mimeType: `image/${metadata.format}`,
-      sha256Hash: cypto.createHash('sha256').update(buffer).digest('hex'),
+      sha256Hash: cypto
+        .createHash('sha256')
+        .update(imageData.buffer)
+        .digest('hex'),
       fileSizeKB: Math.round((metadata.size || 0) / 1024),
       nsfw: true,
     };

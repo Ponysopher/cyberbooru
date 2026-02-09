@@ -10,7 +10,7 @@ export async function GET(_request: Request) {
     HARD_LIMIT,
   );
 
-  const offset = parseInt(queryParams.get('limit') || '0', 10);
+  const offset = parseInt(queryParams.get('offset') || '0', 10);
 
   try {
     const images = await get_image_paths(limit, offset);

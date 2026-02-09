@@ -1,56 +1,46 @@
 import { testApiHandler } from 'next-test-api-route-handler';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as appHandler from './route';
-import { prismaMock } from '@/vitest-configs/mocks/prisma';
+import { get_image_paths } from '@/app/data/images';
 
-interface ImagesApiTestParams {
-  limit?: string;
-  offset?: string;
-}
-
-vi.mock('@/prisma/client-handle', () => ({
-  getPrismaClient: () => prismaMock,
+vi.mock('@/app/data/images', () => ({
+  get_image_paths: vi.fn(),
 }));
 
 async function testApiHandlerGeneric(
   test: ({ fetch }: { fetch: any }) => Promise<void>,
-  params: ImagesApiTestParams,
+  url = '/api/images',
 ) {
   await testApiHandler({
     appHandler,
-    url: '/api/images/',
-    params: params as Record<string, string>,
+    url,
     test,
   });
 }
 
 describe('/api/images', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('respects query params and forwards them to server action', async () => {
-    prismaMock.image.findMany.mockResolvedValue([]);
+    vi.mocked(get_image_paths).mockResolvedValue([]);
 
-    await testApiHandlerGeneric(
-      async ({ fetch }) => {
-        const res = await fetch();
+    await testApiHandlerGeneric(async ({ fetch }) => {
+      const res = await fetch();
 
-        expect(res.status).toBe(200);
-        expect(res.headers.get('content-type')).toBe('application/json');
+      expect(res.status).toBe(200);
+      expect(res.headers.get('content-type')).toBe('application/json');
 
-        await res.json();
+      await res.json();
 
-        expect(prismaMock.image.findMany).toHaveBeenCalledWith(
-          expect.objectContaining({
-            take: 5,
-            skip: 10,
-          }),
-        );
-      },
-      { limit: '5', offset: '10' },
-    );
+      expect(get_image_paths).toHaveBeenCalledWith(5, 10);
+    }, '/api/images?limit=5&offset=10');
   });
 
   it('returns 500 on unexpected server action failure', async () => {
     // Simulate prisma failure
-    prismaMock.image.findMany.mockRejectedValue(new Error('DB crashed'));
+    vi.mocked(get_image_paths).mockRejectedValue(new Error('DB crashed'));
 
     await testApiHandlerGeneric(async ({ fetch }) => {
       const res = await fetch();
@@ -59,20 +49,10 @@ describe('/api/images', () => {
 
       const json = await res.json();
       expect(json).toMatchObject({
-        error: expect.stringContaining('Failed'), // adjust based on your error shape
+        error: expect.stringContaining('Failed'),
       });
 
-      expect(prismaMock.image.findMany).toHaveBeenCalledTimes(1);
-    }, {});
-  });
-
-  it('does not make additional DB calls', async () => {
-    prismaMock.image.findMany.mockResolvedValue([]);
-
-    await testApiHandlerGeneric(async ({ fetch }) => {
-      await fetch();
-
-      expect(prismaMock.image.findMany).toHaveBeenCalledTimes(1);
-    }, {});
+      expect(get_image_paths).toHaveBeenCalledTimes(1);
+    });
   });
 });

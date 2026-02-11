@@ -48,6 +48,9 @@ next-env.d.ts
 /public/*
 /prisma/generated/
 */archive
+
+# ignore test data
 prisma/dev.db
 sample_images/
 thumbnails/
+sample_uploads/

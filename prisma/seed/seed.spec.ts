@@ -1,18 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import { getSeedImageData } from './seed';
 import path from 'path';
-import fs from 'fs';
+import { readdirSync } from 'fs';
+import { SUPPORTED_IMAGE_FORMATS_REGEX } from '@/constants';
+
+if (!process.env.BASE_IMAGES_PATH) {
+  throw new Error('BASE_IMAGES_PATH is not set');
+}
 
 describe('getSeedImageData', () => {
   it('produces a structured list of images', async () => {
-    const imageFileNames = [
-      '133196374_p0.png',
-      'GxC1rOAX0AAunLs.jpeg',
-      '129193482_p0_master1200.jpg',
-      '133341258_p0.png',
-      '133154851_p0.jpg',
-      'Rubjoy_Polyphallography.png',
-    ].map((fileName) => `sample_images/${fileName}`);
+    const imageFileNames = readdirSync(process.env.BASE_IMAGES_PATH!)
+      .filter((fileName) => fileName.match(SUPPORTED_IMAGE_FORMATS_REGEX))
+      .map((fileName) => `sample_images/${fileName}`);
 
     const imageData = await getSeedImageData(process.env.BASE_IMAGES_PATH!);
     const returnedFileNames = imageData

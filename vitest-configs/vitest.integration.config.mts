@@ -12,5 +12,6 @@ export default defineConfig({
     environment: 'node',
     include: ['**/*.integration.test.{ts,tsx}'],
     setupFiles: [MAIN_SETUP_FILE],
+    // fileParallelism: false,
   },
 });

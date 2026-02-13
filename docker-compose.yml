@@ -3,14 +3,20 @@ services:
     image: postgres:16
     restart: unless-stopped
     env_file:
-      - .env # Loads variables from your existing .env file
+      - .env
     ports:
       - '5433:5432'
     volumes:
-      # Bind mount: host ./database → container /var/lib/postgresql
-      - /home/ponysopher/dev/booru-db-data:/var/lib/postgresql
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER:-postgres}']
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-postgres}',
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
+
+volumes:
+  pgdata:

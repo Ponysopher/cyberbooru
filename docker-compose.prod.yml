@@ -1,0 +1,9 @@
+services:
+  db:
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

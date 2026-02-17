@@ -1,0 +1,9 @@
+services:
+  db:
+    env_file:
+      - .env.test
+    volumes:
+      - pgdata_test:/var/lib/postgresql/data
+
+volumes:
+  pgdata_test:

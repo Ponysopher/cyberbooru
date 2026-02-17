@@ -2,12 +2,8 @@ services:
   db:
     image: postgres:16
     restart: unless-stopped
-    env_file:
-      - .env
     ports:
-      - '5433:5432'
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+      - '${POSTGRES_PORT}:5432'
     healthcheck:
       test:
         [
@@ -17,6 +13,3 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-
-volumes:
-  pgdata:

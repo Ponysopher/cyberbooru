@@ -1,12 +1,12 @@
-import 'dotenv/config'; // This loads your .env file (optional but recommended)
-import { defineConfig, env } from 'prisma/config';
+import { defineConfig } from 'prisma/config';
+import { getConnectionStringFromEnvironment } from './prisma/client-handle';
 
 export default defineConfig({
-  schema: 'prisma/schema.prisma', // Path to your schema (usually this)
+  schema: 'prisma/schema.prisma',
   migrations: {
-    path: 'prisma/migrations', // Where migrations are stored
+    path: 'prisma/migrations',
   },
   datasource: {
-    url: env('DATABASE_URL'), // Pulls from .env
+    url: getConnectionStringFromEnvironment(),
   },
 });

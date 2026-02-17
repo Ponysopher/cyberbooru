@@ -36,7 +36,7 @@ export default class TestWorkspace {
   //   await this.prisma.tag.deleteMany();
   // }
 
-  copyFixtures(srcDir: string, destSubDir: string) {
+  private copyFixtures(srcDir: string, destSubDir: string) {
     const dest = path.join(this.root, destSubDir);
     fs.cpSync(srcDir, dest, { recursive: true });
     return dest;

@@ -43,3 +43,11 @@ export function getPrismaClient(connectionString?: string) {
   const adapter = new PrismaPg({ connectionString: url });
   return new PrismaClient({ adapter });
 }
+
+export async function resetDatabase() {
+  const prisma = getPrismaClient();
+  await prisma.imageTags.deleteMany();
+  await prisma.image.deleteMany();
+  await prisma.tag.deleteMany();
+  await prisma.$disconnect();
+}

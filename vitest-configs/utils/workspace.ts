@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import fs from 'fs';
+import fs, { readdirSync } from 'fs';
 import os from 'os';
 import path from 'path';
 // import { getPrismaClient } from '@/prisma/client-handle';
@@ -9,12 +9,20 @@ export default class TestWorkspace {
   root: string;
   imagesPath: string;
   thumbnailsPath: string;
+  #ORIGINAL_BASE_IMAGES_PATH: string;
+  #ORIGINAL_BASE_THUMBNAILS_PATH: string;
   // prisma: PrismaClient;
 
   private constructor(root: string) {
     this.root = root;
     this.imagesPath = path.join(root, 'images');
     this.thumbnailsPath = path.join(root, 'thumbnails');
+
+    // temporarily override enviroment variables
+    this.#ORIGINAL_BASE_IMAGES_PATH = process.env.BASE_IMAGES_PATH!;
+    process.env.BASE_IMAGES_PATH = this.imagesPath;
+    this.#ORIGINAL_BASE_THUMBNAILS_PATH = process.env.BASE_THUMBNAILS_PATH!;
+    process.env.BASE_THUMBNAILS_PATH = this.thumbnailsPath;
     // this.prisma = getPrismaClient();
   }
 
@@ -36,9 +44,12 @@ export default class TestWorkspace {
   //   await this.prisma.tag.deleteMany();
   // }
 
-  private copyFixtures(srcDir: string, destSubDir: string) {
-    const dest = path.join(this.root, destSubDir);
+  private copyFixtures(srcDir: string, dest: string) {
+    console.debug(
+      `Copying ${readdirSync(srcDir).length} images from ${srcDir} to ${dest}`,
+    );
     fs.cpSync(srcDir, dest, { recursive: true });
+    console.debug(`Copied ${readdirSync(dest).length} images`);
     return dest;
   }
 
@@ -56,5 +67,9 @@ export default class TestWorkspace {
       throw new Error('Refusing to delete non-test directory');
     }
     fs.rmSync(this.root, { recursive: true, force: true });
+
+    // reset envrionment variables
+    process.env.BASE_IMAGES_PATH = this.#ORIGINAL_BASE_IMAGES_PATH;
+    process.env.BASE_THUMBNAILS_PATH = this.#ORIGINAL_BASE_THUMBNAILS_PATH;
   }
 }

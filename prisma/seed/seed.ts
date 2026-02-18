@@ -69,23 +69,14 @@ export async function getSeedImageData(
     });
   }
 
-  console.log(`Prepared ${images.length} images from ${fullDir} for seeding.`);
+  console.log(`Prepared ${images.length} images for seeding.`);
   return images;
 }
 
-export default async function seed(): Promise<void> {
-  const fullDir = process.env.BASE_IMAGES_PATH;
-  if (!fullDir) {
-    console.error('BASE_IMAGES_PATH environment variable is not set.');
-    return;
-  }
-  const thumbnailDir = process.env.BASE_THUMBNAILS_PATH;
-  if (!thumbnailDir) {
-    console.warn(
-      'BASE_THUMBNAILS_PATH environment variable is not set. Thumbnails will not be generated.',
-    );
-  }
-
+export default async function seed(
+  fullDir: string,
+  thumbnailDir?: string,
+): Promise<void> {
   const images = await getSeedImageData(fullDir, thumbnailDir);
 
   if (images.length === 0) {
@@ -129,7 +120,18 @@ export default async function seed(): Promise<void> {
 }
 
 export async function main(): Promise<void> {
-  await seed();
+  const fullDir = process.env.BASE_IMAGES_PATH;
+  if (!fullDir) {
+    console.error('BASE_IMAGES_PATH environment variable is not set.');
+    return;
+  }
+  const thumbnailDir = process.env.BASE_THUMBNAILS_PATH;
+  if (!thumbnailDir) {
+    console.warn(
+      'BASE_THUMBNAILS_PATH environment variable is not set. Thumbnails will not be generated.',
+    );
+  }
+  await seed(fullDir, thumbnailDir);
 }
 
 if (import.meta.main) {

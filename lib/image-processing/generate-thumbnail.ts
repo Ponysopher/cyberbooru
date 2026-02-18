@@ -5,8 +5,9 @@ import { ProcessImageInput } from './types';
 
 export default async function generate_thumbnail(
   image: ProcessImageInput,
+  thumbnailDir = process.env.BASE_THUMBNAILS_PATH,
 ): Promise<string | null> {
-  const thumbnailDir = process.env.BASE_THUMBNAILS_PATH;
+  // const thumbnailDir = process.env.BASE_THUMBNAILS_PATH;
   if (!thumbnailDir) {
     console.warn(
       'BASE_THUMBNAILS_PATH environment variable is not set. Thumbnails will not be generated.',

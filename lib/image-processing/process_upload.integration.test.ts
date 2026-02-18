@@ -63,9 +63,9 @@ describe.sequential('process_upload', async () => {
   });
 
   it('inserts DB rows', () => {
-    expect(
-      imageEntries.map(({ fullPath }) => path.basename(fullPath)).sort(),
-    ).toEqual(sample_upload_file_paths.sort());
+    expect(imageEntries.map(({ fullPath }) => fullPath)).toEqual(
+      sample_upload_file_paths.sort(),
+    );
   });
 
   it.each(imageEntries)('writes files', (imageEntry) => {
@@ -75,7 +75,4 @@ describe.sequential('process_upload', async () => {
   it.each(imageEntries)('creates thumbnails', (imageEntry) => {
     expect(imageFiles.includes(imageEntry.fullPath));
   });
-
-  // it.todo('returns metadata');
-  // it('returns metadata', () => {});
 });

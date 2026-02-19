@@ -50,6 +50,7 @@ export async function getSeedImageData(
     if (generateThumbnails) {
       generatedThumbnailPath = await generate_thumbnail(
         await inputFromPath(fullPath),
+        thumbnailDir,
       );
       if (!generatedThumbnailPath) {
         console.error(`Could not generate thumbnail for ${fullPath}`);

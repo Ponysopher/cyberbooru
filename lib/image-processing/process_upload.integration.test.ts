@@ -33,7 +33,11 @@ describe.sequential('process_upload', async () => {
       inputFromPath(filePath),
     );
     const upload_workers = imageInputBuffers.map(async (input) =>
-      process_upload(await input),
+      process_upload(
+        await input,
+        workspace.imagesPath,
+        workspace.thumbnailsPath,
+      ),
     );
     // Entries returned from the database
     imageEntries = await Promise.all(upload_workers);

@@ -108,17 +108,6 @@ describe('get_image_paths', () => {
     expect(result1).toEqual(result2); // same input → same output
   });
 
-  it('throws when BASE_IMAGES_PATH is missing', async () => {
-    const original = process.env.BASE_IMAGES_PATH;
-    delete process.env.BASE_IMAGES_PATH;
-
-    await expect(get_image_paths()).rejects.toThrow(
-      'BASE_IMAGES_PATH is not defined',
-    );
-
-    process.env.BASE_IMAGES_PATH = original;
-  });
-
   it('throws generic error when query fails', async () => {
     prismaMock.image.findMany.mockRejectedValue(new Error('Database gone'));
     await expect(get_image_paths()).rejects.toThrow('Failed to fetch images');

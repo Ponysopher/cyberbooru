@@ -1,13 +1,11 @@
-import fs from 'fs';
 import path from 'path';
 import sharp from 'sharp';
 import { ProcessImageInput } from './types';
 
 export default async function generate_thumbnail(
   image: ProcessImageInput,
-  thumbnailDir = process.env.BASE_THUMBNAILS_PATH,
+  thumbnailDir: string,
 ): Promise<string | null> {
-  // const thumbnailDir = process.env.BASE_THUMBNAILS_PATH;
   if (!thumbnailDir) {
     console.warn(
       'BASE_THUMBNAILS_PATH environment variable is not set. Thumbnails will not be generated.',

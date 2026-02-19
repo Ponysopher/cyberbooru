@@ -8,8 +8,10 @@ import upload_image from './upload-image';
 
 export async function process_upload(
   input: ProcessImageInput,
+  imagesDir: string,
+  thumbnailDir: string,
 ): Promise<ImageModel> {
-  let originalPath: string | null = null;
+  let fullPath: string | null = null;
   let thumbnailPath: string | null = null;
   let dbRecordId: number | null = null;
 
@@ -17,19 +19,19 @@ export async function process_upload(
 
   try {
     // 1. Write original file
-    originalPath = await upload_image(input);
+    fullPath = await upload_image(input, imagesDir);
 
     // 2. Metadata
     const metadata = await get_metadata(input);
 
     // 3. Generate thumbnail
-    thumbnailPath = await generate_thumbnail(input);
+    thumbnailPath = await generate_thumbnail(input, thumbnailDir);
 
     // 4. Insert DB record
     const image = await prisma.image.create({
       data: {
-        fullPath: originalPath,
-        thumbnailPath: thumbnailPath || originalPath,
+        fullPath,
+        thumbnailPath: thumbnailPath || fullPath,
         ...metadata,
       },
     });
@@ -49,8 +51,8 @@ export async function process_upload(
     prisma.$disconnect();
 
     // Delete files if created
-    if (originalPath) {
-      await fs.unlink(originalPath).catch(() => {});
+    if (fullPath) {
+      await fs.unlink(fullPath).catch(() => {});
     }
 
     if (thumbnailPath) {

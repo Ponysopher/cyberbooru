@@ -7,6 +7,12 @@ import { getPrismaClient } from '@/prisma/client-handle';
 import fs from 'fs/promises';
 import { Image as ImageModel } from '@/prisma/generated/prisma/client';
 
+const imagesDir = process.env.BASE_IMAGES_PATH;
+if (!imagesDir) throw new Error('process.env.BASE_IMAGES_PATH is not defined');
+const thumbnailDir = process.env.BASE_THUMBNAILS_PATH;
+if (!thumbnailDir)
+  throw new Error('process.env.BASE_THUMBNAILS_PATH is not defined');
+
 // ────────────────────────────────────────────────
 // Mock all external dependencies
 // ────────────────────────────────────────────────
@@ -107,11 +113,17 @@ describe('process_upload', () => {
   });
 
   it('happy path creates file, thumbnail, db record and returns the created image', async () => {
-    const result = await process_upload(mockInput);
+    const result = await process_upload(mockInput, imagesDir, thumbnailDir);
 
-    expect(uploadImageModule.default).toHaveBeenCalledWith(mockInput);
+    expect(uploadImageModule.default).toHaveBeenCalledWith(
+      mockInput,
+      imagesDir,
+    );
     expect(getMetadataModule.default).toHaveBeenCalledWith(mockInput);
-    expect(generateThumbnailModule.default).toHaveBeenCalledWith(mockInput);
+    expect(generateThumbnailModule.default).toHaveBeenCalledWith(
+      mockInput,
+      thumbnailDir,
+    );
 
     expect(mockPrisma.image.create).toHaveBeenCalledWith({
       data: mockSuppliedImageData,
@@ -134,7 +146,9 @@ describe('process_upload', () => {
 
     mockPrisma.image.create.mockRejectedValue(dbError);
 
-    await expect(process_upload(mockInput)).rejects.toThrow(dbError);
+    await expect(
+      process_upload(mockInput, imagesDir, thumbnailDir),
+    ).rejects.toThrow(dbError);
 
     // Files are cleaned up
     expect(fs.unlink).toHaveBeenCalledTimes(2);
@@ -152,7 +166,7 @@ describe('process_upload', () => {
   it('uses originalPath as fallback for thumbnail if thumbnail generation returns null/undefined', async () => {
     vi.mocked(generateThumbnailModule.default).mockResolvedValue(null);
 
-    await process_upload(mockInput);
+    await process_upload(mockInput, imagesDir, thumbnailDir);
 
     expect(mockPrisma.image.create).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -9,10 +9,6 @@ export async function get_image_paths(
   limit: number = 10,
   offset?: number,
 ): Promise<QueriedImage[]> {
-  if (!process.env.BASE_IMAGES_PATH) {
-    throw new Error('BASE_IMAGES_PATH is not defined');
-  }
-
   const prisma = getPrismaClient();
   let images: QueriedImage[] | null = null;
   try {

@@ -8,6 +8,8 @@ import TEST_IMAGE_FILENAMES from '@/vitest-configs/test-image-filenames';
 import { inputFromPath } from './input-adapters';
 
 const THUMBNAILS_DIR = process.env.BASE_THUMBNAILS_PATH;
+if (!THUMBNAILS_DIR) throw new Error('BASE_THUMBNAILS_PATH is not defined');
+
 const IMAGES_DIR = process.env.BASE_IMAGES_PATH;
 const imageFileNames = TEST_IMAGE_FILENAMES;
 const fullImageFilePaths = imageFileNames.map((fileName) =>
@@ -36,7 +38,10 @@ describe('generateThumbnail', () => {
       await Promise.all(
         fullImageFilePaths.map(
           async (imagePath) =>
-            await generate_thumbnail(await inputFromPath(imagePath)),
+            await generate_thumbnail(
+              await inputFromPath(imagePath),
+              THUMBNAILS_DIR,
+            ),
         ),
       )
     ).sort((a, b) => (a || '').localeCompare(b || ''));

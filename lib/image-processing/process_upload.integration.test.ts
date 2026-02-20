@@ -14,14 +14,15 @@ const SAMPLE_UPLOADS_DIR = process.env.SAMPLE_UPLOADS_PATH;
 
 const imagesPath = process.env.BASE_IMAGES_PATH!;
 
-describe.sequential('process_upload', async () => {
-  const workspace = await TestWorkspace.create();
+describe.sequential('process_upload', () => {
+  let workspace: TestWorkspace;
   let sample_upload_file_paths: string[] = [];
   let imageEntries: Image[] = [];
   let imageFiles: string[] = [];
   let thumbnails: string[] = [];
 
   beforeAll(async () => {
+    workspace = await TestWorkspace.create();
     workspace.copyImages(SAMPLE_UPLOADS_DIR);
     const thumbnailsPath = workspace.thumbnailsPath;
     const sample_upload_file_names = fs.readdirSync(workspace.imagesPath);
@@ -70,11 +71,29 @@ describe.sequential('process_upload', async () => {
     expect(imageEntries).toHaveLength(sample_upload_file_paths.length);
   });
 
-  it.each(imageEntries)('writes files', (imageEntry) => {
-    expect(imageFiles.includes(imageEntry.originalFileName!));
+  it('writes files to disk', () => {
+    for (const entry of imageEntries) {
+      expect(fs.existsSync(entry.fullPath)).toBe(true);
+    }
   });
 
-  it.each(imageEntries)('creates thumbnails', (imageEntry) => {
-    expect(imageFiles.includes(imageEntry.originalFileName!));
+  it('creates thumbnails', () => {
+    for (const entry of imageEntries) {
+      expect(fs.existsSync(entry.thumbnailPath)).toBe(true);
+    }
+  });
+
+  it('preserves original filename', () => {
+    const originalNames = sample_upload_file_paths.map((p) => path.basename(p));
+    for (const entry of imageEntries) {
+      expect(originalNames).toContain(entry.originalFileName);
+    }
+  });
+
+  it('uses UUID-based storage name', () => {
+    for (const entry of imageEntries) {
+      const name = path.basename(entry.fullPath);
+      expect(name).toMatch(/^[0-9a-f-]{36}\.[a-zA-Z0-9]+$/);
+    }
   });
 });

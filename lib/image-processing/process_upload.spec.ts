@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest';
 import { process_upload } from './process-upload';
 import * as uploadImageModule from './upload-image';
 import * as getMetadataModule from './get-metadata';
@@ -6,6 +6,10 @@ import * as generateThumbnailModule from './generate-thumbnail';
 import { getPrismaClient } from '@/prisma/client-handle';
 import fs from 'fs/promises';
 import { Image as ImageModel } from '@/prisma/generated/prisma/client';
+import { PrismaClient } from '@/prisma/generated/prisma/client';
+import { ProcessImageInput } from './types';
+import { mockDeep } from 'vitest-mock-extended';
+import * as uniqueFileNameModule from './get-unique-file-name';
 
 const imagesDir = process.env.BASE_IMAGES_PATH;
 if (!imagesDir) throw new Error('process.env.BASE_IMAGES_PATH is not defined');
@@ -13,31 +17,21 @@ const thumbnailDir = process.env.BASE_THUMBNAILS_PATH;
 if (!thumbnailDir)
   throw new Error('process.env.BASE_THUMBNAILS_PATH is not defined');
 
-// ────────────────────────────────────────────────
-// Mock all external dependencies
-// ────────────────────────────────────────────────
-
 vi.mock('./upload-image');
 vi.mock('./get-metadata');
 vi.mock('./generate-thumbnail');
-vi.mock('@/prisma/client-handle');
 
-const mockPrisma = {
-  image: {
-    create: vi.fn(),
-    delete: vi.fn(),
-  },
-  $disconnect: vi.fn().mockResolvedValue(undefined),
-};
-
-vi.mocked(getPrismaClient).mockReturnValue(mockPrisma as any);
+vi.mock('@/prisma/client-handle', () => ({
+  getPrismaClient: vi.fn(),
+}));
 
 const mockReturnedImage: ImageModel = {
   id: 1,
   createdAt: new Date(),
-  fullPath: 'samples/image.jpeg',
-  thumbnailPath: 'thumbnails/image.jpeg',
+  fullPath: 'samples/test-uuid.jpeg',
+  thumbnailPath: 'thumbnails/test-uuid.jpeg',
   largePath: null,
+  originalFileName: 'image.jpeg',
   mimeType: 'image/jpeg',
   width: 1920,
   height: 1080,
@@ -49,14 +43,14 @@ const mockReturnedImage: ImageModel = {
   groupId: null,
 };
 const mockSuppliedImageData = {
-  fullPath: 'samples/image.jpeg',
-  thumbnailPath: 'thumbnails/image.jpeg',
+  fullPath: 'samples/test-uuid.jpeg',
+  thumbnailPath: 'thumbnails/test-uuid.jpeg',
+  originalFileName: 'image.jpeg',
   mimeType: 'image/jpeg',
   width: 1920,
   height: 1080,
   fileSizeKB: 245,
   sha256Hash: 'abc123hash',
-  // source: null,
   nsfw: true,
 };
 
@@ -69,43 +63,43 @@ const mockMetadata = {
   nsfw: true,
 };
 
+const mockInput: ProcessImageInput = {
+  buffer: Buffer.from('fake image content'),
+  filename: 'image.jpeg',
+};
+
+const mockUnqiueInput: ProcessImageInput = {
+  buffer: Buffer.from('fake image content'),
+  filename: 'test-uuid.jpeg',
+};
+
+const prismaMock = mockDeep<PrismaClient>();
+
 describe('process_upload', () => {
-  const mockInput = {
-    file: Buffer.from('fake image content'),
-    filename: 'test.jpg',
-    // ... other fields your ProcessImageInput might have
-  } as any;
-
-  let mockPrisma: any; // or better type it if possible
-
   beforeEach(() => {
     vi.clearAllMocks();
+    // mockReset(prismaMock);
+    vi.mocked(getPrismaClient).mockReturnValue(prismaMock);
 
-    // Fresh mock prisma every test
-    mockPrisma = {
-      image: {
-        create: vi.fn(),
-        delete: vi.fn(),
-      },
-      $disconnect: vi.fn().mockResolvedValue(undefined),
-    };
-
-    vi.mocked(getPrismaClient).mockReturnValue(mockPrisma);
-
-    // Default mocks
     vi.mocked(uploadImageModule.default).mockResolvedValue(
       mockReturnedImage.fullPath,
     );
+
     vi.mocked(getMetadataModule.default).mockResolvedValue(mockMetadata);
+
     vi.mocked(generateThumbnailModule.default).mockResolvedValue(
       mockReturnedImage.thumbnailPath,
     );
 
-    // Default prisma behavior
-    mockPrisma.image.create.mockResolvedValue(mockReturnedImage);
-    mockPrisma.image.delete.mockResolvedValue(undefined);
+    prismaMock.image.create.mockResolvedValue(mockReturnedImage);
 
-    vi.spyOn(fs, 'unlink').mockResolvedValue(undefined);
+    prismaMock.image.delete.mockResolvedValue(mockReturnedImage);
+
+    vi.spyOn(fs, 'unlink').mockResolvedValue();
+
+    vi.spyOn(uniqueFileNameModule, 'getUniqueFileName').mockReturnValue(
+      'test-uuid.jpeg',
+    );
   });
 
   afterEach(() => {
@@ -116,22 +110,22 @@ describe('process_upload', () => {
     const result = await process_upload(mockInput, imagesDir, thumbnailDir);
 
     expect(uploadImageModule.default).toHaveBeenCalledWith(
-      mockInput,
+      mockUnqiueInput,
       imagesDir,
     );
-    expect(getMetadataModule.default).toHaveBeenCalledWith(mockInput);
+    expect(getMetadataModule.default).toHaveBeenCalledWith(mockUnqiueInput);
     expect(generateThumbnailModule.default).toHaveBeenCalledWith(
-      mockInput,
+      mockUnqiueInput,
       thumbnailDir,
     );
 
-    expect(mockPrisma.image.create).toHaveBeenCalledWith({
+    expect(prismaMock.image.create).toHaveBeenCalledWith({
       data: mockSuppliedImageData,
     });
 
     expect(result).toMatchObject(mockReturnedImage);
 
-    expect(mockPrisma.$disconnect).toHaveBeenCalled();
+    expect(prismaMock.$disconnect).toHaveBeenCalled();
   });
 
   it('rolls back files when DB insert fails (no DB record is created)', async () => {
@@ -144,7 +138,7 @@ describe('process_upload', () => {
 
     const dbError = new Error('Unique constraint failed');
 
-    mockPrisma.image.create.mockRejectedValue(dbError);
+    prismaMock.image.create.mockRejectedValue(dbError);
 
     await expect(
       process_upload(mockInput, imagesDir, thumbnailDir),
@@ -156,11 +150,11 @@ describe('process_upload', () => {
     expect(fs.unlink).toHaveBeenCalledWith(thumbnailPath);
 
     // No DB record was created → no delete should be attempted
-    expect(mockPrisma.image.create).toHaveBeenCalledTimes(1);
-    expect(mockPrisma.image.delete).not.toHaveBeenCalled();
+    expect(prismaMock.image.create).toHaveBeenCalledTimes(1);
+    expect(prismaMock.image.delete).not.toHaveBeenCalled();
 
     // Disconnect still called in catch
-    expect(mockPrisma.$disconnect).toHaveBeenCalledTimes(1); // once in try, once in catch
+    expect(prismaMock.$disconnect).toHaveBeenCalledTimes(1); // once in try, once in catch
   });
 
   it('uses originalPath as fallback for thumbnail if thumbnail generation returns null/undefined', async () => {
@@ -168,7 +162,7 @@ describe('process_upload', () => {
 
     await process_upload(mockInput, imagesDir, thumbnailDir);
 
-    expect(mockPrisma.image.create).toHaveBeenCalledWith(
+    expect(prismaMock.image.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           thumbnailPath: mockReturnedImage.fullPath, // fallback to original

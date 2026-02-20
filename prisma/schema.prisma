@@ -15,22 +15,23 @@ generator zod {
 }
 
 model Image {
-  id              Int       @id @default(autoincrement())
-  fullPath        String    @unique
-  thumbnailPath   String    @unique
-  largePath       String?   @unique
-  mimeType        String?
-  width           Int?
-  height          Int?
-  fileSizeKB      Int?
-  sha256Hash      String?   @unique
-  perceptualHash  String?
-  source          String?
-  nsfw            Boolean   @default(true)
-  groupId         Int?
-  group           ImageGroup? @relation(fields: [groupId], references: [id])
-  createdAt       DateTime  @default(now())
-  ImageTags       ImageTags[] @relation(name: "imgRef")
+  id                Int          @id @default(autoincrement())
+  fullPath          String       @unique
+  thumbnailPath     String       @unique
+  largePath         String?      @unique
+  originalFileName  String?
+  mimeType          String?
+  width             Int?
+  height            Int?
+  fileSizeKB        Int?
+  sha256Hash        String?      @unique
+  perceptualHash    String?
+  source            String?
+  nsfw              Boolean      @default(true)
+  groupId           Int?
+  group             ImageGroup?  @relation(fields: [groupId], references: [id])
+  createdAt         DateTime     @default(now())
+  ImageTags         ImageTags[]  @relation(name: "imgRef")
 }
 
 model ImageGroup {

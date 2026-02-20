@@ -5,6 +5,7 @@ import { getPrismaClient } from '@/prisma/client-handle';
 import generate_thumbnail from './generate-thumbnail';
 import get_metadata from './get-metadata';
 import upload_image from './upload-image';
+import { getUniqueFileName } from './get-unique-file-name';
 
 export async function process_upload(
   input: ProcessImageInput,
@@ -17,21 +18,30 @@ export async function process_upload(
 
   let prisma = getPrismaClient();
 
+  // Generate unique file name to avoid duplicates
+  const uniqueFileName = getUniqueFileName(input.filename);
+  console.debug('Got unqiue file name', uniqueFileName);
+  const newImageInput: ProcessImageInput = {
+    buffer: input.buffer,
+    filename: uniqueFileName,
+  };
+
   try {
     // 1. Write original file
-    fullPath = await upload_image(input, imagesDir);
+    fullPath = await upload_image(newImageInput, imagesDir);
 
     // 2. Metadata
-    const metadata = await get_metadata(input);
+    const metadata = await get_metadata(newImageInput);
 
     // 3. Generate thumbnail
-    thumbnailPath = await generate_thumbnail(input, thumbnailDir);
+    thumbnailPath = await generate_thumbnail(newImageInput, thumbnailDir);
 
     // 4. Insert DB record
     const image = await prisma.image.create({
       data: {
         fullPath,
         thumbnailPath: thumbnailPath || fullPath,
+        originalFileName: input.filename,
         ...metadata,
       },
     });
